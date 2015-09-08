@@ -12,9 +12,11 @@ import java.util.Scanner;
 public class World {
 
 	JFrame frame = new JFrame();
+    JFrame heatFrame = new JFrame();
 	Sun sun = new Sun();
 	int x,y;
 	JButton[][] grid;
+    JButton[][] heatGrid;
 	Thing[][] gridThings;
 	List<FertileSoil> fsoil = new ArrayList<FertileSoil>();
 	List<InfertileSoil> isoil = new ArrayList<InfertileSoil>();
@@ -35,19 +37,25 @@ public class World {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		 
 		// get 2/3 of the height, and 2/3 of the width
-		int height = screenSize.height * 3 / 4;
-		int width = screenSize.width * 3 / 4;
+		int height = screenSize.height * 1 / 2;
+		int width = screenSize.width * 1 / 2;
 		 
 		// set the jframe height and width
 		frame.setPreferredSize(new Dimension(width, height));
-
+        heatFrame.setPreferredSize(new Dimension(width, height));
 		
 		this.x=x;
 		this.y=y;
 		frame.setLayout(new GridLayout(x, y));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
-		frame.setTitle("DaisyWorld");
+		frame.setTitle("Diseased Daisyworld");
+		frame.setVisible(true);
+        
+        heatFrame.setLayout(new GridLayout(x, y));
+		heatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		heatFrame.pack();
+		heatFrame.setTitle("Heatmap of Daisyworld");
 		frame.setVisible(true);
 		grid=new JButton[x][y];
 		gridThings = new Thing[x][y];
@@ -415,9 +423,10 @@ public class World {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
-		World grid = new World(30,30);
+		World grid = new World(5,5);
+      
 		//grid.updateGrid();
-			for(int i = 1; i<150;i++){
+			/*for(int i = 1; i<150;i++){
 				Thread.sleep(100);
 				
 				// Scanner scan= new Scanner(System.in);
@@ -435,7 +444,7 @@ public class World {
 				System.out.println("white "+grid.wdaisy.size());
 				System.out.println("black " +grid.bdaisy.size());
 				System.out.println(grid.globalTemp+"\n");
-			}
+			}*/
 	}
 
 }

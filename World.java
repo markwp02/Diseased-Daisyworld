@@ -56,7 +56,7 @@ public class World {
 		heatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		heatFrame.pack();
 		heatFrame.setTitle("Heatmap of Daisyworld");
-		frame.setVisible(true);
+		heatFrame.setVisible(true);
 		grid=new JButton[x][y];
 		gridThings = new Thing[x][y];
 		

@@ -8,10 +8,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import java.awt.SystemColor.*
+import java.awt.SystemColor.*;
+import java.awt.Color;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
+
 
 public class World {
 
+    //Color color = new Color();
 	JFrame frame = new JFrame();
     JFrame heatFrame = new JFrame();
 	Sun sun = new Sun();
@@ -27,8 +33,9 @@ public class World {
 	List<BlackDaisy> bdaisy = new ArrayList<BlackDaisy>();
 
 	double steadyState = 22.5;
-	double globalTemp = 10;
-	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0.3;
+	double globalTemp = 0;
+	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0;
+    
 	/**
 	 * @param x
 	 * @param y
@@ -51,16 +58,30 @@ public class World {
 		frame.setLayout(new GridLayout(x, y));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
+//frame.setLocationRelativeTo(null);
+        //frame.setLocationByPlatform(true);
 		frame.setTitle("Diseased Daisyworld");
 		frame.setVisible(true);
         
         heatFrame.setLayout(new GridLayout(x, y));
 		heatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		heatFrame.pack();
+        //heatFrame.setLocationByPlatform(true);
 		heatFrame.setTitle("Heatmap of Daisyworld");
+        
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
+        Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
+        int xWidth = (int) rect.getMaxX() - heatFrame.getWidth();
+        //int yHeight = (int) rect.getMaxY() - heatFrame.getHeight();
+        int yHeight = 0;
+        heatFrame.setLocation(xWidth, yHeight);
+        heatFrame.setVisible(true);
+        
+        
 		heatFrame.setVisible(true);
 		grid=new JButton[x][y];
-        gridHeat = new JButton[x][y];
+        heatGrid = new JButton[x][y];
 		gridThings = new Thing[x][y];
 		
 		for(int i=0;i<x;i++){
@@ -76,9 +97,7 @@ public class World {
 					grid[i][j] = daisy.jb;
 					bdaisy.add(daisy);
 					gridThings[i][j] = daisy;
-					temp = new JButton();
-                    temp.setBackground(Color.Orange);
-                    heatGrid[i][j] = temp;
+					
 				}
 				//else if(i%4==1){
 				else if(ran <= chance*2){	
@@ -86,8 +105,7 @@ public class World {
 					grid[i][j] = daisy.jb;
 					wdaisy.add(daisy);
 					gridThings[i][j] = daisy;
-                    temp.setBackground(Color.Orange);
-                    heatGrid[i][j] = temp;
+                   
 				}
 				//else if(i%4==2){
 				else if(ran <= chance*3){
@@ -95,23 +113,27 @@ public class World {
 					grid[i][j] = soil.jb;
 					fsoil.add(soil);
 					gridThings[i][j] = soil;
-                    temp.setBackground(Color.Orange);
-                    heatGrid[i][j] = temp;
+                    
 				}
 				else{
 					InfertileSoil soil = new InfertileSoil(globalTemp,i,j);
 					grid[i][j] = soil.jb;
 					isoil.add(soil);
 					gridThings[i][j] = soil;
-                    temp.setBackground(Color.Orange);
-                    heatGrid[i][j] = temp;
+                    
 				}
-				
+				temp = new JButton();
+                temp.setBackground(new Color(0,0,255));
+                heatGrid[i][j] = temp;
 				frame.add(grid[i][j]);
                 heatFrame.add(heatGrid[i][j]);
 			
 			}
 		}
+        
+        Thing temp = gridThings[x/2][y/2];
+        temp.localTemp = 1000;
+        
 	}
 	
 	public void updateWhiteDaisies(){
@@ -192,43 +214,8 @@ public class World {
 	}
 	
 	public void updateGrid(){
-		//frame.removeAll();
-		//frame.validate();
+		
 		frame.getContentPane().removeAll();
-		//frame.setVisible(false);
-		//JFrame temp = frame; 
-		//frame = new JFrame();
-		//temp.setVisible(false);
-	
-		//frame.setVisible(true);
-		//frame.setTitle("DaisyWorld");
-		// get the screen size as a java dimension
-		//Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		 
-		// get 2/3 of the height, and 2/3 of the width
-	//	int height = screenSize.height * 3 / 4;
-	//	int width = screenSize.width * 3 / 4;
-		 
-		// set the jframe height and width
-	//	frame.setPreferredSize(new Dimension(width, height));
-
-		
-		
-	//	frame.setLayout(new GridLayout(x, y));
-	//	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	//	frame.pack();
-	
-	
-		//frame.setLayout(new GridLayout(x, y));
-		//frame.remove(grid[0][0]);
-		//frame.remove(grid[2][1]);
-		
-		//for(int i=0;i<x;i++){
-		//	for(int j=0;j<y;j++){
-				//frame.remove(grid[i][j]);
-		//	}
-		//}
-		
 		
 		for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
@@ -236,16 +223,32 @@ public class World {
 			
 			}
 		}
-		//frame.invalidate();
+		
 		frame.revalidate();
-		//frame.validate();
+		
 		frame.repaint();
-		//frame.setVisible(true); //this will close frame i.e. NewJFrame
-
-		//new NewJFrame().setVisible(true); 
-		// Now this will open NewJFrame for you again and will also get refreshed
+		 
 	}
 	
+    public void updateHeatMap(){
+		
+		heatFrame.getContentPane().removeAll();
+		
+		for(int i=0;i<x;i++){
+			for(int j=0;j<y;j++){
+				heatFrame.add(heatGrid[i][j]);
+			
+			}
+		}
+		
+		heatFrame.revalidate();
+		
+		heatFrame.repaint();
+		 
+	}
+    
+    
+    
 	public void updateTemp(){
 		double totalTemp = 0;
 		double totalNum = 0;
@@ -254,6 +257,8 @@ public class World {
 		double luminosity = sun.getLuminosity();
 		double albedoIncrease;
 		double absorbed;
+        
+        JButton heatColor;
 		
 		for(int j=0;j<y;j++){
 			for(int i=0;i<x;i++){
@@ -264,6 +269,36 @@ public class World {
 				absorbed = 1-tmp.albedo;
 				albedoIncrease = 2*absorbed;//changes to number between 1 and 2 
 				tmp.localTemp *= luminosity*albedoIncrease;
+                if(tmp.localTemp < 10){
+                        heatColor = new JButton();
+                        heatColor.setBackground(new Color(0,0,255));
+                        heatGrid[i][j] = heatColor;
+                }    
+                else if(tmp.localTemp < 20){
+                        heatColor = new JButton();
+                        heatColor.setBackground(new Color(0,255,0));
+                        heatGrid[i][j] = heatColor;
+                }
+                else if(tmp.localTemp < 30){
+                        heatColor = new JButton();
+                        heatColor.setBackground(new Color(239,255,0));
+                        heatGrid[i][j] = heatColor;
+                }
+                else if(tmp.localTemp < 40){
+                        heatColor = new JButton();
+                        heatColor.setBackground(new Color(255,179,0));
+                        heatGrid[i][j] = heatColor;
+                }                 
+                else if(tmp.localTemp < 50){
+                        heatColor = new JButton();
+                        heatColor.setBackground(new Color(255,90,0));
+                        heatGrid[i][j] = heatColor;
+                }                  
+                else{
+                        heatColor = new JButton();
+                        heatColor.setBackground(new Color(0,0,0));
+                        heatGrid[i][j] = heatColor;
+                }                    
 				//System.out.print(tmp.localTemp+" ");
 			}
 			//System.out.println();
@@ -434,28 +469,31 @@ public class World {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
-		World grid = new World(5,5);
-      
+		World world = new World(25,25);
+        //world.gridThings[5,5].localTemp = 1000;
+       // grid.updateGrid();
+        
 		//grid.updateGrid();
-			/*for(int i = 1; i<150;i++){
+			for(int i = 1; i<100;i++){
 				Thread.sleep(100);
 				
 				// Scanner scan= new Scanner(System.in);
 				// String text= scan.nextLine();
 				
-				grid.updateFertileSoil();
-				grid.updateWhiteDaisies();
-				grid.updateBlackDaisies();
-				//grid.frame.removeAll();
-				grid.updateGrid();
-				grid.sun.updateSun();
-				grid.updateTemp();
-		
+				world.updateFertileSoil();
+				world.updateWhiteDaisies();
+				world.updateBlackDaisies();
+				world.updateGrid();
+				world.sun.updateSun();
+				world.updateTemp();
+                world.updateHeatMap();
+                
+        
 				System.out.println("Step: " + i);
-				System.out.println("white "+grid.wdaisy.size());
-				System.out.println("black " +grid.bdaisy.size());
-				System.out.println(grid.globalTemp+"\n");
-			}*/
+				System.out.println("white "+world.wdaisy.size());
+				System.out.println("black " +world.bdaisy.size());
+				System.out.println(world.globalTemp+"\n");
+			}
 	}
 
 }

@@ -17,6 +17,7 @@ public class World {
 	int x,y;
 	JButton[][] grid;
     JButton[][] heatGrid;
+    JButton temp;
 	Thing[][] gridThings;
 	List<FertileSoil> fsoil = new ArrayList<FertileSoil>();
 	List<InfertileSoil> isoil = new ArrayList<InfertileSoil>();
@@ -58,6 +59,7 @@ public class World {
 		heatFrame.setTitle("Heatmap of Daisyworld");
 		heatFrame.setVisible(true);
 		grid=new JButton[x][y];
+        gridHeat = new JButton[x][y];
 		gridThings = new Thing[x][y];
 		
 		for(int i=0;i<x;i++){
@@ -73,8 +75,9 @@ public class World {
 					grid[i][j] = daisy.jb;
 					bdaisy.add(daisy);
 					gridThings[i][j] = daisy;
-					
-
+					temp = new JButton();
+                    temp.setBackground(Color.Orange);
+                    heatGrid[i][j] = temp;
 				}
 				//else if(i%4==1){
 				else if(ran <= chance*2){	
@@ -82,6 +85,8 @@ public class World {
 					grid[i][j] = daisy.jb;
 					wdaisy.add(daisy);
 					gridThings[i][j] = daisy;
+                    temp.setBackground(Color.Orange);
+                    heatGrid[i][j] = temp;
 				}
 				//else if(i%4==2){
 				else if(ran <= chance*3){
@@ -89,15 +94,20 @@ public class World {
 					grid[i][j] = soil.jb;
 					fsoil.add(soil);
 					gridThings[i][j] = soil;
+                    temp.setBackground(Color.Orange);
+                    heatGrid[i][j] = temp;
 				}
 				else{
 					InfertileSoil soil = new InfertileSoil(globalTemp,i,j);
 					grid[i][j] = soil.jb;
 					isoil.add(soil);
 					gridThings[i][j] = soil;
+                    temp.setBackground(Color.Orange);
+                    heatGrid[i][j] = temp;
 				}
 				
 				frame.add(grid[i][j]);
+                heatFrame.add(heatGrid[i][j]);
 			
 			}
 		}

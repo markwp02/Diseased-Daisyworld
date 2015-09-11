@@ -33,8 +33,8 @@ public class World {
 	List<BlackDaisy> bdaisy = new ArrayList<BlackDaisy>();
 
 	double steadyState = 22.5;
-	double globalTemp = 0;
-	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0;
+	double globalTemp = 10;
+	double birthrate, deathrate = 0.3, perWhite, ran, chance = 0.3;
     
 	/**
 	 * @param x
@@ -131,8 +131,8 @@ public class World {
 			}
 		}
         
-        Thing temp = gridThings[x/2][y/2];
-        temp.localTemp = 1000;
+       // Thing temp = gridThings[x/2][y/2];
+        //temp.localTemp = 1000;
         
 	}
 	
@@ -182,7 +182,6 @@ public class World {
 			if(Math.random() <= growthRateDaisy(tmp.localTemp)){
 				tmp = fsoil.remove(idx);
 				
-				//problem is that I do not take into account surrounding temperatures
 				perWhite = percentWhite(tmp.localTemp,steadyState);
 				//perWhite = 1;
 				//System.out.println(perWhite);
@@ -259,16 +258,25 @@ public class World {
 		double absorbed;
         
         JButton heatColor;
-		
+		double diff;
 		for(int j=0;j<y;j++){
 			for(int i=0;i<x;i++){
-				tmp = gridThings[j][i];
+				tmp = gridThings[i][j];
 				// get average from neighbours
 				tmp.localTemp = weightedLocalTemp(gridThings,i,j,x,y);
-				// update temp according to sun and albedo
+               // diff = averageNeighbours(gridThings,i,j,x-1,y-1) - tmp.localTemp;
+				tmp.localTemp = (averageNeighbours(gridThings,i,j,x-1,y-1) + 4*tmp.localTemp)/5;
+                // update temp according to sun and albedo
 				absorbed = 1-tmp.albedo;
 				albedoIncrease = 2*absorbed;//changes to number between 1 and 2 
-				tmp.localTemp *= luminosity*albedoIncrease;
+				//albedoIncrease = absorbed-0.5;
+                //tmp.localTemp *= luminosity*albedoIncrease;
+                tmp.localTemp *=albedoIncrease;
+                tmp.localTemp += 1.45*luminosity;
+                //System.out.println(diff);
+              //  tmp.localTemp *= albedoIncrease;
+                //tmp.localTemp += 1/4 * diff + 0.3*luminosity;
+               // System.out.println(tmp.localTemp);
                 if(tmp.localTemp < 10){
                         heatColor = new JButton();
                         heatColor.setBackground(new Color(0,0,255));
@@ -328,9 +336,8 @@ public class World {
 			//System.out.println(localTemp);
 			totalNum++;
 		}
-		
+
 		this.globalTemp = totalTemp / totalNum;
-		
 }
 	
 	public static double percentWhite(double localTemp, double steadyState){
@@ -349,6 +356,39 @@ public class World {
 		return 1-0.003265*Math.pow(22.5-temp, 2);
 	}
 	
+    public static double averageNeighbours(Thing[][] gridThings, int i, int j, int xMax, int YMax){
+        double total = 0;
+        //Cell above
+        if(i == xMax){
+            total = gridThings[0][j].localTemp;
+        }else{
+            total = gridThings[i+1][j].localTemp;
+        }
+        //Cell below
+        if(i == 0){
+            total +=  gridThings[xMax][j].localTemp;
+        }
+        else{
+            total += gridThings[i-1][j].localTemp;
+        }
+        //Cell to left
+        if(j == 0){
+            total += gridThings[i][YMax].localTemp;
+        }
+        else{
+            total += gridThings[i][j-1].localTemp;
+        }
+        //Cell to right
+        if(j == YMax){
+            total += gridThings[i][0].localTemp;
+        }
+        else{
+            total += gridThings[i][j+1].localTemp;
+        }
+        return total / 4;
+            
+    }
+    
 	/**
 	 * Finds weighted average from among surrounding cells
 	 * 0.4 central cell, 0.1 up,down,left,right and 0.05 diagonals
@@ -461,7 +501,7 @@ public class World {
 		}
 		
 		return total;
-	}
+    }
 	
 	/**
 	 * @param args
@@ -474,7 +514,7 @@ public class World {
        // grid.updateGrid();
         
 		//grid.updateGrid();
-			for(int i = 1; i<100;i++){
+			for(int i = 1; i<101;i++){
 				Thread.sleep(100);
 				
 				// Scanner scan= new Scanner(System.in);

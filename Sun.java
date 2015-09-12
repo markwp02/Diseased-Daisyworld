@@ -2,7 +2,7 @@
 public class Sun {
 
 	double luminosity;
-	final double increase = 0.001;
+	final double increase = 0.000;
 	public Sun(){
 		luminosity = 1.0;
 	}

@@ -25,6 +25,9 @@ public abstract class Thing {
 	
 	abstract void update();
 
+    public double getAlbedo(){
+        return albedo;
+    }
 	
 	/**
 	 * @param args

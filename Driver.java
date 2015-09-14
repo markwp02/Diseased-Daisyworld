@@ -17,7 +17,7 @@ public class Driver {
 			
 			World world = new World(25,25);
 			//grid.updateGrid();
-				for(int i = 1; i<150;i++){
+				for(int i = 1; i<201;i++){
 					Thread.sleep(100);
 					
 					

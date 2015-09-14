@@ -14,6 +14,9 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 
+import static java.lang.Math.pow;
+
+
 
 public class World {
 
@@ -33,8 +36,12 @@ public class World {
 	List<BlackDaisy> bdaisy = new ArrayList<BlackDaisy>();
 
 	double steadyState = 22.5;
-	double globalTemp = 10;
-	double birthrate, deathrate = 0.3, perWhite, ran, chance = 0.3;
+	double globalTemp = -10;
+	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0;
+    
+    final double STEFAN_BOLTZMAN = 5.67*Math.pow(10,-8); //Joules/sec m^2 k^4
+    final int SOLAR_FLUX = 917; // W/m^2
+    final double EMISSIVITY = 0.96;
     
 	/**
 	 * @param x
@@ -108,20 +115,21 @@ public class World {
                    
 				}
 				//else if(i%4==2){
-				else if(ran <= chance*3){
+				//else if(ran <= chance*3)
+                    else{
 					FertileSoil soil = new FertileSoil(globalTemp,i,j);
 					grid[i][j] = soil.jb;
 					fsoil.add(soil);
 					gridThings[i][j] = soil;
                     
 				}
-				else{
-					InfertileSoil soil = new InfertileSoil(globalTemp,i,j);
-					grid[i][j] = soil.jb;
-					isoil.add(soil);
-					gridThings[i][j] = soil;
+				//else{
+				//	InfertileSoil soil = new InfertileSoil(globalTemp,i,j);
+				//	grid[i][j] = soil.jb;
+				//	isoil.add(soil);
+				//	gridThings[i][j] = soil;
                     
-				}
+				//}
 				temp = new JButton();
                 temp.setBackground(new Color(0,0,255));
                 heatGrid[i][j] = temp;
@@ -199,17 +207,12 @@ public class World {
 					grid[tmp.i][tmp.j] = daisy.jb;
 					gridThings[daisy.i][daisy.j]=daisy;
 				}
-				//frame.revalidate();
-				//frame.repaint();
-				//frame.add(grid[tmp.i][tmp.j]);
+				
 				
 				
 			}
 		}
-		//frame.invalidate();
-		//frame.validate();
-		//frame.revalidate();
-		//frame.repaint();
+		
 	}
 	
 	public void updateGrid(){
@@ -251,55 +254,72 @@ public class World {
 	public void updateTemp(){
 		double totalTemp = 0;
 		double totalNum = 0;
-		double localTemp;
+		double localTemp, albedo;
 		Thing tmp;
 		double luminosity = sun.getLuminosity();
 		double albedoIncrease;
 		double absorbed;
-        
+        double energyEmmitted, energyAbsorbed, energyReceived, energyReflected;
+        int surfaceArea = 1;
+        double test;
         JButton heatColor;
 		double diff;
 		for(int j=0;j<y;j++){
 			for(int i=0;i<x;i++){
 				tmp = gridThings[i][j];
+                albedo = tmp.getAlbedo();
+                
+                energyReceived = luminosity*SOLAR_FLUX;
+                energyReflected = energyReceived*albedo;
+                energyAbsorbed = energyReceived - energyReflected;
+                energyEmmitted = energyAbsorbed;
+
+                //rearrange Stefan-Boltzmann law
+                test =energyEmmitted/(EMISSIVITY*STEFAN_BOLTZMAN*surfaceArea);
+                tmp.localTemp = (Math.sqrt(Math.sqrt(test))) - 273;
+               // System.out.println(tmp.localTemp);
+                diff = averageNeighbours(gridThings,i,j,x-1,y-1) - tmp.localTemp;
+                tmp.localTemp += 1/4*diff;
+
+                
+                
 				// get average from neighbours
-				tmp.localTemp = weightedLocalTemp(gridThings,i,j,x,y);
-               // diff = averageNeighbours(gridThings,i,j,x-1,y-1) - tmp.localTemp;
-				tmp.localTemp = (averageNeighbours(gridThings,i,j,x-1,y-1) + 4*tmp.localTemp)/5;
+				//tmp.localTemp = weightedLocalTemp(gridThings,i,j,x,y);
+				//tmp.localTemp = (averageNeighbours(gridThings,i,j,x-1,y-1) + 4*tmp.localTemp)/5;
                 // update temp according to sun and albedo
-				absorbed = 1-tmp.albedo;
-				albedoIncrease = 2*absorbed;//changes to number between 1 and 2 
+				//absorbed = 1-tmp.albedo;
+				//albedoIncrease = 2*absorbed;//changes to number between 1 and 2 
 				//albedoIncrease = absorbed-0.5;
                 //tmp.localTemp *= luminosity*albedoIncrease;
-                tmp.localTemp *=albedoIncrease;
-                tmp.localTemp += 1.45*luminosity;
+                //tmp.localTemp *=albedoIncrease;
+                //tmp.localTemp += 1.45*luminosity;
                 //System.out.println(diff);
               //  tmp.localTemp *= albedoIncrease;
                 //tmp.localTemp += 1/4 * diff + 0.3*luminosity;
                // System.out.println(tmp.localTemp);
-                if(tmp.localTemp < 10){
+                if(tmp.localTemp < 5){
                         heatColor = new JButton();
-                        heatColor.setBackground(new Color(0,0,255));
+                        heatColor.setBackground(new Color(0,0,255)); // navy blue
                         heatGrid[i][j] = heatColor;
                 }    
-                else if(tmp.localTemp < 20){
+                else if(tmp.localTemp < 15){
                         heatColor = new JButton();
-                        heatColor.setBackground(new Color(0,255,0));
+                        heatColor.setBackground(new Color(0,255,255)); // light blue
                         heatGrid[i][j] = heatColor;
                 }
-                else if(tmp.localTemp < 30){
+                else if(tmp.localTemp < 25){
                         heatColor = new JButton();
-                        heatColor.setBackground(new Color(239,255,0));
+                        heatColor.setBackground(new Color(0,0,255)); // green
                         heatGrid[i][j] = heatColor;
                 }
-                else if(tmp.localTemp < 40){
+                else if(tmp.localTemp < 35){
                         heatColor = new JButton();
-                        heatColor.setBackground(new Color(255,179,0));
+                        heatColor.setBackground(new Color(255,179,0)); // orange
                         heatGrid[i][j] = heatColor;
                 }                 
-                else if(tmp.localTemp < 50){
+                else if(tmp.localTemp < 40){
                         heatColor = new JButton();
-                        heatColor.setBackground(new Color(255,90,0));
+                        heatColor.setBackground(new Color(255,0,0)); // red
                         heatGrid[i][j] = heatColor;
                 }                  
                 else{
@@ -389,119 +409,8 @@ public class World {
             
     }
     
-	/**
-	 * Finds weighted average from among surrounding cells
-	 * 0.4 central cell, 0.1 up,down,left,right and 0.05 diagonals
-	 * @param gridThings
-	 * @param i x coordinate of central cell
-	 * @param j y coordinate of central cell
-	 * @param xMax number of x coordinates
-	 * @param yMax number of y coordinates
-	 * @return the weighted average
-	 */
-	public static double weightedLocalTemp(Thing[][] gridThings,int i,int j,int xMax,int yMax){
-		double total = 0;
-		//System.out.println(i + ", " + j);
-		total += gridThings[i][j].localTemp*0.4;
-		if(i == 0){
-			if(j==0){
-				total += gridThings[xMax-1][j].localTemp*0.1;
-				total += gridThings[i+1][j].localTemp*0.1;
-				total += gridThings[i][yMax-1].localTemp*0.1;
-				total += gridThings[i][j+1].localTemp*0.1;
-				total += gridThings[xMax-1][yMax-1].localTemp*0.05;
-				total += gridThings[xMax-1][j+1].localTemp*0.05;
-				total += gridThings[i+1][yMax-1].localTemp*0.05;
-				total += gridThings[i+1][j+1].localTemp*0.05;
-			}
-			else if(j==yMax-1){
-				total += gridThings[xMax-1][j].localTemp*0.1;
-				total += gridThings[i+1][j].localTemp*0.1;
-				total += gridThings[i][j-1].localTemp*0.1;
-				total += gridThings[i][0].localTemp*0.1;
-				total += gridThings[xMax-1][j-1].localTemp*0.05;
-				total += gridThings[xMax-1][0].localTemp*0.05;
-				total += gridThings[i+1][j-1].localTemp*0.05;
-				total += gridThings[i+1][0].localTemp*0.05;
-			}
-			else{
-				total += gridThings[xMax-1][j].localTemp*0.1;
-				total += gridThings[i+1][j].localTemp*0.1;
-				total += gridThings[i][j-1].localTemp*0.1;
-				total += gridThings[i][j+1].localTemp*0.1;
-				total += gridThings[xMax-1][j-1].localTemp*0.05;
-				total += gridThings[xMax-1][j+1].localTemp*0.05;
-				total += gridThings[i+1][j-1].localTemp*0.05;
-				total += gridThings[i+1][j+1].localTemp*0.05;
-			}
-		}
-		else if(i == xMax-1){
-			if(j==0){
-				total += gridThings[i-1][j].localTemp*0.1;
-				total += gridThings[0][j].localTemp*0.1;
-				total += gridThings[i][yMax-1].localTemp*0.1;
-				total += gridThings[i][j+1].localTemp*0.1;
-				total += gridThings[i-1][yMax-1].localTemp*0.05;
-				total += gridThings[i-1][j+1].localTemp*0.05;
-				total += gridThings[0][yMax-1].localTemp*0.05;
-				total += gridThings[0][j+1].localTemp*0.05;
-			}
-			else if(j==yMax-1){
-				total += gridThings[i-1][j].localTemp*0.1;
-				total += gridThings[0][j].localTemp*0.1;
-				total += gridThings[i][j-1].localTemp*0.1;
-				total += gridThings[i][0].localTemp*0.1;
-				total += gridThings[i-1][j-1].localTemp*0.05;
-				total += gridThings[i-1][0].localTemp*0.05;
-				total += gridThings[0][j-1].localTemp*0.05;
-				total += gridThings[0][0].localTemp*0.05;
-			}
-			else{
-				total += gridThings[i-1][j].localTemp*0.1;
-				total += gridThings[0][j].localTemp*0.1;
-				total += gridThings[i][j-1].localTemp*0.1;
-				total += gridThings[i][j+1].localTemp*0.1;
-				total += gridThings[i-1][j-1].localTemp*0.05;
-				total += gridThings[i-1][j+1].localTemp*0.05;
-				total += gridThings[0][j-1].localTemp*0.05;
-				total += gridThings[0][j+1].localTemp*0.05;
-			}
-		}
-		else{
-			if(j==0){
-				total += gridThings[i-1][j].localTemp*0.1;
-				total += gridThings[i+1][j].localTemp*0.1;
-				total += gridThings[i][yMax-1].localTemp*0.1;
-				total += gridThings[i][j+1].localTemp*0.1;
-				total += gridThings[i-1][yMax-1].localTemp*0.05;
-				total += gridThings[i-1][j+1].localTemp*0.05;
-				total += gridThings[i+1][yMax-1].localTemp*0.05;
-				total += gridThings[i+1][j+1].localTemp*0.05;
-			}
-			else if(j==yMax-1){
-				total += gridThings[i-1][j].localTemp*0.1;
-				total += gridThings[i+1][j].localTemp*0.1;
-				total += gridThings[i][j-1].localTemp*0.1;
-				total += gridThings[i][0].localTemp*0.1;
-				total += gridThings[i-1][j-1].localTemp*0.05;
-				total += gridThings[i-1][0].localTemp*0.05;
-				total += gridThings[i+1][j-1].localTemp*0.05;
-				total += gridThings[i+1][0].localTemp*0.05;
-			}
-			else{
-				total += gridThings[i-1][j].localTemp*0.1;
-				total += gridThings[i+1][j].localTemp*0.1;
-				total += gridThings[i][j-1].localTemp*0.1;
-				total += gridThings[i][j+1].localTemp*0.1;
-				total += gridThings[i-1][j-1].localTemp*0.05;
-				total += gridThings[i-1][j+1].localTemp*0.05;
-				total += gridThings[i+1][j-1].localTemp*0.05;
-				total += gridThings[i+1][j+1].localTemp*0.05;
-			}
-		}
-		
-		return total;
-    }
+	
+    
 	
 	/**
 	 * @param args

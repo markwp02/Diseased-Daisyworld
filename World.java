@@ -1,41 +1,16 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
-import javax.swing.JSeparator;
-
-
-import javax.swing.JFrame;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import javax.swing.GroupLayout;
-import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-
-import java.awt.SystemColor.*;
-import java.awt.Color;
-import java.awt.GraphicsDevice;
-import java.awt.GraphicsEnvironment;
-import java.awt.Rectangle;
-
-import static java.lang.Math.pow;
+import java.lang.Math.pow;
 
 
 
 public class World {
 
-     static final String infectList[] = {"0", "0.1", "0.15", "0.2"};
-             
+    Sun sun;
     JComboBox<String> infectComboBox;
-    //Color color = new Color();
 	JFrame frame = new JFrame();
     JFrame heatFrame = new JFrame();
     JPanel mainPanel = new JPanel();
@@ -43,32 +18,33 @@ public class World {
     JPanel rightpanel = new JPanel();
     
     JMenuBar menuBar = new JMenuBar();
-    JMenu menuRun, menuStep, menuReset, menuInfection;
-    JMenuItem menuItem;
+    JMenu menuInfection;
     JRadioButtonMenuItem rbMenuItem;
-   // JCheckBoxMenuItem cbMenuItem;
    
    ButtonGroup group = new ButtonGroup();
     
-	Sun sun = new Sun();
+	
 	int x,y;
 	JButton[][] grid;
     JButton[][] heatGrid;
     JButton temp;
 	Thing[][] gridThings;
-	List<FertileSoil> fsoil = new ArrayList<FertileSoil>();
-	List<InfertileSoil> isoil = new ArrayList<InfertileSoil>();
-	List<WhiteDaisy> wdaisy = new ArrayList<WhiteDaisy>();
+	List<FertileSoil> fsoil;
+	//List<InfertileSoil> isoil; = new ArrayList<InfertileSoil>();
+	List<WhiteDaisy> wdaisy; 
+    
+	List<BlackDaisy> bdaisy; 
 
-	List<BlackDaisy> bdaisy = new ArrayList<BlackDaisy>();
-
-	double steadyState = 22.5;
-	double globalTemp = -10;
+	
 	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0;
     
+    final double INIT_TEMP = -10;
+    final double STEADY_STATE = 22.5;
     final double STEFAN_BOLTZMAN = 5.67*Math.pow(10,-8); //Joules/sec m^2 k^4
     final int SOLAR_FLUX = 917; // W/m^2
     final double EMISSIVITY = 0.96;
+    
+    double globalTemp = INIT_TEMP;
     
 	/**
 	 * @param x
@@ -95,7 +71,6 @@ public class World {
         step.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e)
             {
-                //System.out.println("step");
                 step();
             }
         });
@@ -128,7 +103,8 @@ public class World {
         reset.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e)
             {
-                System.out.println("reset");
+                initDaisyWorld();
+                System.out.println(gridThings[1][1].localTemp);
             }
         });
         
@@ -136,22 +112,16 @@ public class World {
         menuBar.add(step);
         menuBar.add(reset);
         
-        //menuBar.add(new JSeparator()); // SEPARATOR
-        //menuBar.addSeparator();
+       
 
         
        menuBar.setOpaque(true);
        menuBar.setBackground(new Color(235,235,235));
-        menuBar.addSeparator();
         
-        //Build the first menu.
         menuInfection = new JMenu("Infection Rate");
         
         
         
-       // menuInfection.setOpaque(true);
-       // menuInfection.setBackground(Color.CYAN);
-        //menuInfection.setMnemonic(KeyEvent.VK_A);
         menuInfection.getAccessibleContext().setAccessibleDescription(
                 "The only menu in this program that has menu items");
                 
@@ -201,35 +171,12 @@ public class World {
         //mainPanel.setLayout(new GridBagLayout());
         mainPanel.setLayout(new GridLayout());
         
-        //GridBagConstraints c = new GridBagConstraints();
         
-         //natural height, maximum width
-        // c.fill = GridBagConstraints.HORIZONTAL;
-         
-         // c.weightx = 0.5;
         
-       /// c.fill = GridBagConstraints.HORIZONTAL;
-       // c.gridx = 0;
-       // c.gridy = 0;
+       
         
 		bpanel.setLayout(new GridLayout(x, y));
-       // rightpanel.setLayout(new GridLayout(4,1));
-        
-       //// rightpanel.add(step);
-        //rightpanel.add(run);
-        //rightpanel.add(new JLabel("Infect rate"));
-       // infectComboBox = new JComboBox<>(infectList);
-       // rightpanel.add(infectComboBox);
-        
-        /*step.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e)
-            {
-                //System.out.println("step");
-                step();
-            }
-        });
-        */
-        
+       
         
  
         
@@ -237,7 +184,7 @@ public class World {
         
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
-//frame.setLocationRelativeTo(null);
+        //frame.setLocationRelativeTo(null);
         //frame.setLocationByPlatform(true);
 		frame.setTitle("Diseased Daisyworld");
 		frame.setVisible(true);
@@ -262,61 +209,38 @@ public class World {
 		grid=new JButton[x][y];
         heatGrid = new JButton[x][y];
 		gridThings = new Thing[x][y];
+		initDaisyWorld();
 		
-		for(int i=0;i<x;i++){
+	}
+	
+    private void initDaisyWorld(){
+        sun = new Sun();
+        fsoil = new ArrayList<FertileSoil>();
+        wdaisy = new ArrayList<WhiteDaisy>();
+        bdaisy = new ArrayList<BlackDaisy>();
+        globalTemp = INIT_TEMP;
+        for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
 				
-				//JButton jb = new JButton("Black Daisy", new ImageIcon("images\\black.png"));
-				//grid[i][j]=jb;
-				ran = Math.random();
-				//if(i%4==0){
-				// equal chance of black/white daisies and fertile/infertile soil
-				if(ran <= chance){
-					BlackDaisy daisy = new BlackDaisy(globalTemp,i,j);
-					grid[i][j] = daisy.jb;
-					bdaisy.add(daisy);
-					gridThings[i][j] = daisy;
-					
-				}
-				//else if(i%4==1){
-				else if(ran <= chance*2){	
-					WhiteDaisy daisy = new WhiteDaisy(globalTemp,i,j);
-					grid[i][j] = daisy.jb;
-					wdaisy.add(daisy);
-					gridThings[i][j] = daisy;
-                   
-				}
-				//else if(i%4==2){
-				//else if(ran <= chance*3)
-                    else{
-					FertileSoil soil = new FertileSoil(globalTemp,i,j);
-					grid[i][j] = soil.jb;
-					fsoil.add(soil);
-					gridThings[i][j] = soil;
+				FertileSoil soil = new FertileSoil(globalTemp,i,j);
+				grid[i][j] = soil.jb;
+				fsoil.add(soil);
+				gridThings[i][j] = soil;
                     
-				}
-				//else{
-				//	InfertileSoil soil = new InfertileSoil(globalTemp,i,j);
-				//	grid[i][j] = soil.jb;
-				//	isoil.add(soil);
-				//	gridThings[i][j] = soil;
-                    
-				//}
+				
 				temp = new JButton();
                 temp.setBackground(new Color(0,0,255));
                 heatGrid[i][j] = temp;
-				bpanel.add(grid[i][j]);
-                heatFrame.add(heatGrid[i][j]);
+				
 			
 			}
 		}
-        
-       // Thing temp = gridThings[x/2][y/2];
-        //temp.localTemp = 1000;
-        
-	}
-	
+        updateGrid();
+        updateHeatMap();
+    }
+    
 	public void updateWhiteDaisies(){
+       
 		for(int idx=0;idx<wdaisy.size();idx++){
 			WhiteDaisy tmp = wdaisy.get(idx);
 			if(Math.random() <= deathrate || tmp.localTemp < 5 || tmp.localTemp > 40){
@@ -326,14 +250,12 @@ public class World {
 				FertileSoil soil = new FertileSoil(tmp.localTemp,tmp.i,tmp.j);
 				fsoil.add(soil);
 				grid[soil.i][soil.j] = soil.jb;	
-				///soil.jb.revalidate();
-				//soil.jb.repaint();
+				
 				gridThings[soil.i][soil.j] = soil;
 			}
 			
 		}
-		//frame.revalidate();
-		//frame.repaint();
+		
 	}
 	
 	public void updateBlackDaisies(){
@@ -352,8 +274,7 @@ public class World {
 			
 		}
 		
-		//frame.revalidate();
-		//frame.repaint();
+		
 	}
 	
 	public void updateFertileSoil(){
@@ -362,7 +283,7 @@ public class World {
 			if(Math.random() <= growthRateDaisy(tmp.localTemp)){
 				tmp = fsoil.remove(idx);
 				
-				perWhite = percentWhite(tmp.localTemp,steadyState);
+				perWhite = percentWhite(tmp.localTemp,STEADY_STATE);
 				//perWhite = 1;
 				//System.out.println(perWhite);
 				if(Math.random() <= perWhite){
@@ -454,21 +375,6 @@ public class World {
                 tmp.localTemp += 1/4*diff;
 
                 
-                
-				// get average from neighbours
-				//tmp.localTemp = weightedLocalTemp(gridThings,i,j,x,y);
-				//tmp.localTemp = (averageNeighbours(gridThings,i,j,x-1,y-1) + 4*tmp.localTemp)/5;
-                // update temp according to sun and albedo
-				//absorbed = 1-tmp.albedo;
-				//albedoIncrease = 2*absorbed;//changes to number between 1 and 2 
-				//albedoIncrease = absorbed-0.5;
-                //tmp.localTemp *= luminosity*albedoIncrease;
-                //tmp.localTemp *=albedoIncrease;
-                //tmp.localTemp += 1.45*luminosity;
-                //System.out.println(diff);
-              //  tmp.localTemp *= albedoIncrease;
-                //tmp.localTemp += 1/4 * diff + 0.3*luminosity;
-               // System.out.println(tmp.localTemp);
                 if(tmp.localTemp < 5){
                         heatColor = new JButton();
                         heatColor.setBackground(new Color(0,0,255)); // navy blue
@@ -522,18 +428,18 @@ public class World {
 			//System.out.println(localTemp);
 			totalNum++;
 		}
-		for(int idx=0;idx<isoil.size();idx++){
-			localTemp = isoil.get(idx).localTemp;
-			totalTemp += localTemp;
+		//for(int idx=0;idx<isoil.size();idx++){
+		//	localTemp = isoil.get(idx).localTemp;
+		//	totalTemp += localTemp;
 			//System.out.println(localTemp);
-			totalNum++;
-		}
+		//	totalNum++;
+		//}
 
 		this.globalTemp = totalTemp / totalNum;
 }
 	
     public void step(){
-        //System.out.println("Step");
+
         updateFertileSoil();
         updateWhiteDaisies();
 		updateBlackDaisies();
@@ -541,6 +447,9 @@ public class World {
 		sun.updateSun();
 		updateTemp();
         updateHeatMap();
+        System.out.println("white "+wdaisy.size());
+        System.out.println("black " +bdaisy.size());
+        System.out.println(globalTemp+"\n");
         
     }
     
@@ -550,18 +459,19 @@ public class World {
 	 */
     public void runWorld() throws InterruptedException{
         
-        for(int i = 1; i<200;i++){
+        for(int i = 1; i<201;i++){
 			Thread.sleep(100);
-            step();
             System.out.println("Step: " + i);
-            System.out.println("white "+wdaisy.size());
-            System.out.println("black " +bdaisy.size());
-            System.out.println(globalTemp+"\n");
+            step();
+            
+            ///System.out.println("white "+wdaisy.size());
+            //System.out.println("black " +bdaisy.size());
+           // System.out.println(globalTemp+"\n");
         }
     }
     
-	public static double percentWhite(double localTemp, double steadyState){
-		double diff = localTemp - steadyState;
+	public static double percentWhite(double localTemp, double STEADY_STATE){
+		double diff = localTemp - STEADY_STATE;
 		//System.out.println(diff);
 		double percent = 2*diff/100;
 		if(percent >= 0.5)
@@ -619,32 +529,7 @@ public class World {
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
 		World world = new World(25,25);
-        world.updateGrid();
-        world.updateHeatMap();
-        //world.gridThings[5,5].localTemp = 1000;
-       // grid.updateGrid();
-        
-		//grid.updateGrid();
-			for(int i = 1; i<2;i++){
-				//Thread.sleep(100);
-				
-				// Scanner scan= new Scanner(System.in);
-				// String text= scan.nextLine();
-				
-				//world.updateFertileSoil();
-				//world.updateWhiteDaisies();
-				//world.updateBlackDaisies();
-				//world.updateGrid();
-				//world.sun.updateSun();
-				//world.updateTemp();
-              //  world.updateHeatMap();
-                
-        
-				System.out.println("Step: " + i);
-				System.out.println("white "+world.wdaisy.size());
-				System.out.println("black " +world.bdaisy.size());
-				System.out.println(world.globalTemp+"\n");
-			}
+       
 	}
 
 }

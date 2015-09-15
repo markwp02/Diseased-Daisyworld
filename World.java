@@ -1,8 +1,20 @@
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
+import javax.swing.JSeparator;
+
+
 import javax.swing.JFrame;
 import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import javax.swing.GroupLayout;
 import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +32,24 @@ import static java.lang.Math.pow;
 
 public class World {
 
+     static final String infectList[] = {"0", "0.1", "0.15", "0.2"};
+             
+    JComboBox<String> infectComboBox;
     //Color color = new Color();
 	JFrame frame = new JFrame();
     JFrame heatFrame = new JFrame();
+    JPanel mainPanel = new JPanel();
+    JPanel bpanel = new JPanel();
+    JPanel rightpanel = new JPanel();
+    
+    JMenuBar menuBar = new JMenuBar();
+    JMenu menuRun, menuStep, menuReset, menuInfection;
+    JMenuItem menuItem;
+    JRadioButtonMenuItem rbMenuItem;
+   // JCheckBoxMenuItem cbMenuItem;
+   
+   ButtonGroup group = new ButtonGroup();
+    
 	Sun sun = new Sun();
 	int x,y;
 	JButton[][] grid;
@@ -47,8 +74,11 @@ public class World {
 	 * @param x
 	 * @param y
 	 */
-	public World(int x, int y) {
+	public World(int x, int y){
 	
+    
+    
+    
 		// get the screen size as a java dimension
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		 
@@ -60,9 +90,151 @@ public class World {
 		frame.setPreferredSize(new Dimension(width, height));
         heatFrame.setPreferredSize(new Dimension(width, height));
 		
+        JButton step = new JButton("Step");
+        step.setBackground(new Color(235,235,235));
+        step.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e)
+            {
+                //System.out.println("step");
+                step();
+            }
+        });
+        
+        JButton runButton = new JButton("Run");
+        runButton.setBackground(new Color(235,235,235));
+        
+        runButton.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e) 
+            {
+                //System.out.println("step");
+                new Thread() {
+                    public void run(){
+                        try{
+                        //  Thread.sleep(1000);
+                            runWorld();
+                        }catch (InterruptedException ie){
+                            System.out.println(ie);
+                        }
+                    }
+                }.start();
+                
+            }
+        });
+       
+        JButton reset = new JButton("Reset");
+        
+        reset.setBackground(new Color(235,235,235));
+        
+        reset.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e)
+            {
+                System.out.println("reset");
+            }
+        });
+        
+        menuBar.add(runButton);
+        menuBar.add(step);
+        menuBar.add(reset);
+        
+        //menuBar.add(new JSeparator()); // SEPARATOR
+        //menuBar.addSeparator();
+
+        
+       menuBar.setOpaque(true);
+       menuBar.setBackground(new Color(235,235,235));
+        menuBar.addSeparator();
+        
+        //Build the first menu.
+        menuInfection = new JMenu("Infection Rate");
+        
+        
+        
+       // menuInfection.setOpaque(true);
+       // menuInfection.setBackground(Color.CYAN);
+        //menuInfection.setMnemonic(KeyEvent.VK_A);
+        menuInfection.getAccessibleContext().setAccessibleDescription(
+                "The only menu in this program that has menu items");
+                
+        menuBar.add(menuInfection);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0");
+        rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+
+        rbMenuItem = new JRadioButtonMenuItem("0.1");
+        rbMenuItem.setMnemonic(KeyEvent.VK_O);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.2");
+        rbMenuItem.setMnemonic(KeyEvent.VK_O);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.3");
+        rbMenuItem.setMnemonic(KeyEvent.VK_O);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.4");
+        rbMenuItem.setMnemonic(KeyEvent.VK_O);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.5");
+        rbMenuItem.setMnemonic(KeyEvent.VK_O);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        
+        
+        frame.setJMenuBar(menuBar);
+        
+        frame.add(mainPanel);
+        //frame.add(bpanel);
+        mainPanel.add(bpanel);
+       // mainPanel.add(rightpanel);
+        
 		this.x=x;
 		this.y=y;
-		frame.setLayout(new GridLayout(x, y));
+        //mainPanel.setLayout(new GridBagLayout());
+        mainPanel.setLayout(new GridLayout());
+        
+        //GridBagConstraints c = new GridBagConstraints();
+        
+         //natural height, maximum width
+        // c.fill = GridBagConstraints.HORIZONTAL;
+         
+         // c.weightx = 0.5;
+        
+       /// c.fill = GridBagConstraints.HORIZONTAL;
+       // c.gridx = 0;
+       // c.gridy = 0;
+        
+		bpanel.setLayout(new GridLayout(x, y));
+       // rightpanel.setLayout(new GridLayout(4,1));
+        
+       //// rightpanel.add(step);
+        //rightpanel.add(run);
+        //rightpanel.add(new JLabel("Infect rate"));
+       // infectComboBox = new JComboBox<>(infectList);
+       // rightpanel.add(infectComboBox);
+        
+        /*step.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e)
+            {
+                //System.out.println("step");
+                step();
+            }
+        });
+        */
+        
+        
+ 
+        
+        
+        
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
 //frame.setLocationRelativeTo(null);
@@ -133,7 +305,7 @@ public class World {
 				temp = new JButton();
                 temp.setBackground(new Color(0,0,255));
                 heatGrid[i][j] = temp;
-				frame.add(grid[i][j]);
+				bpanel.add(grid[i][j]);
                 heatFrame.add(heatGrid[i][j]);
 			
 			}
@@ -217,18 +389,18 @@ public class World {
 	
 	public void updateGrid(){
 		
-		frame.getContentPane().removeAll();
-		
+		//frame.getContentPane().removeAll();
+		bpanel.removeAll();
 		for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
-				frame.add(grid[i][j]);
+				bpanel.add(grid[i][j]);
 			
 			}
 		}
 		
-		frame.revalidate();
+		bpanel.revalidate();
 		
-		frame.repaint();
+		bpanel.repaint();
 		 
 	}
 	
@@ -309,7 +481,7 @@ public class World {
                 }
                 else if(tmp.localTemp < 25){
                         heatColor = new JButton();
-                        heatColor.setBackground(new Color(0,0,255)); // green
+                        heatColor.setBackground(new Color(0,255,0)); // green
                         heatGrid[i][j] = heatColor;
                 }
                 else if(tmp.localTemp < 35){
@@ -360,6 +532,34 @@ public class World {
 		this.globalTemp = totalTemp / totalNum;
 }
 	
+    public void step(){
+        //System.out.println("Step");
+        updateFertileSoil();
+        updateWhiteDaisies();
+		updateBlackDaisies();
+		updateGrid();
+		sun.updateSun();
+		updateTemp();
+        updateHeatMap();
+        
+    }
+    
+    /**
+	 * @param args
+	 * @throws InterruptedException 
+	 */
+    public void runWorld() throws InterruptedException{
+        
+        for(int i = 1; i<200;i++){
+			Thread.sleep(100);
+            step();
+            System.out.println("Step: " + i);
+            System.out.println("white "+wdaisy.size());
+            System.out.println("black " +bdaisy.size());
+            System.out.println(globalTemp+"\n");
+        }
+    }
+    
 	public static double percentWhite(double localTemp, double steadyState){
 		double diff = localTemp - steadyState;
 		//System.out.println(diff);
@@ -419,23 +619,25 @@ public class World {
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
 		World world = new World(25,25);
+        world.updateGrid();
+        world.updateHeatMap();
         //world.gridThings[5,5].localTemp = 1000;
        // grid.updateGrid();
         
 		//grid.updateGrid();
-			for(int i = 1; i<101;i++){
-				Thread.sleep(100);
+			for(int i = 1; i<2;i++){
+				//Thread.sleep(100);
 				
 				// Scanner scan= new Scanner(System.in);
 				// String text= scan.nextLine();
 				
-				world.updateFertileSoil();
-				world.updateWhiteDaisies();
-				world.updateBlackDaisies();
-				world.updateGrid();
-				world.sun.updateSun();
-				world.updateTemp();
-                world.updateHeatMap();
+				//world.updateFertileSoil();
+				//world.updateWhiteDaisies();
+				//world.updateBlackDaisies();
+				//world.updateGrid();
+				//world.sun.updateSun();
+				//world.updateTemp();
+              //  world.updateHeatMap();
                 
         
 				System.out.println("Step: " + i);

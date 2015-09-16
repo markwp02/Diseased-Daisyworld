@@ -8,18 +8,6 @@ public class WhiteDaisy extends Daisy{
 		// TODO Auto-generated constructor stub
 	}
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	void update() {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 }

@@ -2,8 +2,9 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
-import java.lang.Math.pow;
+import static java.lang.Math.pow;
 
 
 
@@ -32,9 +33,8 @@ public class World {
 	List<FertileSoil> fsoil;
 	//List<InfertileSoil> isoil; = new ArrayList<InfertileSoil>();
 	List<WhiteDaisy> wdaisy; 
-    
-	List<BlackDaisy> bdaisy; 
-
+    List<BlackDaisy> bdaisy; 
+    List<DiseasedDaisy> ddaisy;
 	
 	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0;
     
@@ -133,31 +133,44 @@ public class World {
         menuInfection.add(rbMenuItem);
 
         rbMenuItem = new JRadioButtonMenuItem("0.1");
-        rbMenuItem.setMnemonic(KeyEvent.VK_O);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.2");
-        rbMenuItem.setMnemonic(KeyEvent.VK_O);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.3");
-        rbMenuItem.setMnemonic(KeyEvent.VK_O);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.4");
-        rbMenuItem.setMnemonic(KeyEvent.VK_O);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.5");
-        rbMenuItem.setMnemonic(KeyEvent.VK_O);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
+        rbMenuItem = new JRadioButtonMenuItem("0.6");
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
         
+        rbMenuItem = new JRadioButtonMenuItem("0.7");
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.8");
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.9");
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("1.0");
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
         
         frame.setJMenuBar(menuBar);
         
@@ -218,6 +231,7 @@ public class World {
         fsoil = new ArrayList<FertileSoil>();
         wdaisy = new ArrayList<WhiteDaisy>();
         bdaisy = new ArrayList<BlackDaisy>();
+        ddaisy = new ArrayList<DiseasedDaisy>();
         globalTemp = INIT_TEMP;
         for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
@@ -226,7 +240,8 @@ public class World {
 				grid[i][j] = soil.jb;
 				fsoil.add(soil);
 				gridThings[i][j] = soil;
-                    
+                 //DiseasedDaisy daisy = new DiseasedDaisy(globalTemp,i,j,0);
+                // grid[i][j]=daisy.jb;
 				
 				temp = new JButton();
                 temp.setBackground(new Color(0,0,255));
@@ -237,6 +252,58 @@ public class World {
 		}
         updateGrid();
         updateHeatMap();
+    }
+    
+    public boolean infectedByNeighbours(int idx, int i, int j, boolean white){
+        
+        boolean up,down,left,right;
+        Daisy tmp;
+        
+        //Cell above
+        if(i == x-1){
+            up = gridThings[0][j].isInfected();
+        }else{
+            up = gridThings[i+1][j].isInfected();
+        }
+        //Cell below
+        if(i == 0){
+            down = gridThings[x-1][j].isInfected();
+        }
+        else{
+            down = gridThings[i-1][j].isInfected();
+        }
+        //Cell to left
+        if(j == 0){
+            left = gridThings[i][y-1].isInfected();
+        }
+        else{
+            left = gridThings[i][j-1].isInfected();
+        }
+        //Cell to right
+        if(j == y-1){
+            right = gridThings[i][0].isInfected();
+        }
+        else{
+            right = gridThings[i][j+1].isInfected();
+        }
+        
+        if(up || down || left || right){
+            double infectRate = Double.parseDouble(getSelectedButtonText(group));
+            //System.out.println(infectRate);
+            return Math.random() < infectRate;
+           /* if(Math.random() < infectRate){
+                System.out.println("Here");
+                if(white)
+                    tmp = wdaisy.remove(idx);
+                else
+                    tmp = bdaisy.remove(idx);
+                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,i,j,infectRate);
+                ddaisy.add(daisy);
+                grid[daisy.i][daisy.j] = daisy.jb;	
+				gridThings[daisy.i][daisy.j] = daisy;
+            }*/
+        }
+        return false;
     }
     
 	public void updateWhiteDaisies(){
@@ -252,7 +319,17 @@ public class World {
 				grid[soil.i][soil.j] = soil.jb;	
 				
 				gridThings[soil.i][soil.j] = soil;
+                                
 			}
+            else if(Math.random() < 0.01 || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
+                tmp = wdaisy.remove(idx);
+                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
+                ddaisy.add(daisy);
+                grid[daisy.i][daisy.j] = daisy.jb;	
+				gridThings[daisy.i][daisy.j] = daisy;
+            }
+           
+
 			
 		}
 		
@@ -269,14 +346,39 @@ public class World {
 				fsoil.add(soil);
 				grid[soil.i][soil.j] = soil.jb;
 				
-				gridThings[soil.i][soil.j]=soil;
+				gridThings[soil.i][soil.j]=soil;  
 			}
+            else if(Math.random() < 0.01 || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
+                tmp = bdaisy.remove(idx);
+                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
+                ddaisy.add(daisy);
+                grid[daisy.i][daisy.j] = daisy.jb;	
+				gridThings[daisy.i][daisy.j] = daisy;
+            }
 			
+
 		}
 		
 		
 	}
 	
+    public void updateDiseasedDaisies(){
+        for(int idx=0;idx<ddaisy.size();idx++){
+			DiseasedDaisy tmp = ddaisy.get(idx);
+			if(Math.random() <= deathrate || tmp.localTemp < 10 || tmp.localTemp > 40){
+				tmp = ddaisy.remove(idx);
+				
+				//Daisy becomes fertile soil
+				FertileSoil soil = new FertileSoil(tmp.localTemp,tmp.i,tmp.j);
+				fsoil.add(soil);
+				grid[soil.i][soil.j] = soil.jb;
+				
+				gridThings[soil.i][soil.j]=soil;
+			}
+            
+		}
+    }
+    
 	public void updateFertileSoil(){
 		for(int idx=0;idx<fsoil.size();idx++){
 			FertileSoil tmp = fsoil.get(idx);
@@ -428,21 +530,23 @@ public class World {
 			//System.out.println(localTemp);
 			totalNum++;
 		}
-		//for(int idx=0;idx<isoil.size();idx++){
-		//	localTemp = isoil.get(idx).localTemp;
-		//	totalTemp += localTemp;
+		for(int idx=0;idx<ddaisy.size();idx++){
+			localTemp = ddaisy.get(idx).localTemp;
+			totalTemp += localTemp;
 			//System.out.println(localTemp);
-		//	totalNum++;
-		//}
+			totalNum++;
+		}
 
 		this.globalTemp = totalTemp / totalNum;
 }
 	
     public void step(){
 
+    
         updateFertileSoil();
         updateWhiteDaisies();
 		updateBlackDaisies();
+        updateDiseasedDaisies();
 		updateGrid();
 		sun.updateSun();
 		updateTemp();
@@ -468,6 +572,18 @@ public class World {
             //System.out.println("black " +bdaisy.size());
            // System.out.println(globalTemp+"\n");
         }
+    }
+    
+    public String getSelectedButtonText(ButtonGroup buttonGroup) {
+        for (Enumeration<AbstractButton> buttons = buttonGroup.getElements(); buttons.hasMoreElements();) {
+            AbstractButton button = buttons.nextElement();
+
+            if (button.isSelected()) {
+                return button.getText();
+            }
+        }
+
+        return null;
     }
     
 	public static double percentWhite(double localTemp, double STEADY_STATE){

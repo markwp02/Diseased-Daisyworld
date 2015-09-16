@@ -15,26 +15,26 @@ public abstract class Thing {
 	double localTemp;
 	int i,j;
 	double albedo;
+    boolean infected;
 	
 	public Thing(String image, double localTemp,int i,int j){
 		jb = new JButton(new ImageIcon(image));
 		this.localTemp = localTemp;
 		this.i=i;
 		this.j=j;
+        this.infected = false;
 	}
 	
-	abstract void update();
 
     public double getAlbedo(){
         return albedo;
     }
 	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
+	public boolean isInfected(){
+        return infected;
+    }
+    
+    public double getInfectRate(){
+        return 0;
+    }
 }

@@ -1,5 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -35,6 +38,7 @@ public class World {
 	List<WhiteDaisy> wdaisy; 
     List<BlackDaisy> bdaisy; 
     List<DiseasedDaisy> ddaisy;
+    String text;
 	
 	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0;
     
@@ -52,7 +56,7 @@ public class World {
 	 */
 	public World(int x, int y){
 	
-    
+
     
     
 		// get the screen size as a java dimension
@@ -69,8 +73,7 @@ public class World {
         JButton step = new JButton("Step");
         step.setBackground(new Color(235,235,235));
         step.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e)
-            {
+            public void actionPerformed(ActionEvent e){
                 step();
             }
         });
@@ -79,8 +82,7 @@ public class World {
         runButton.setBackground(new Color(235,235,235));
         
         runButton.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e) 
-            {
+            public void actionPerformed(ActionEvent e) {
                 //System.out.println("step");
                 new Thread() {
                     public void run(){
@@ -101,10 +103,9 @@ public class World {
         reset.setBackground(new Color(235,235,235));
         
         reset.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e)
-            {
+            public void actionPerformed(ActionEvent e){
                 initDaisyWorld();
-                System.out.println(gridThings[1][1].localTemp);
+                //System.out.println(gridThings[1][1].localTemp);
             }
         });
         
@@ -122,10 +123,29 @@ public class World {
         
         
         
-        menuInfection.getAccessibleContext().setAccessibleDescription(
-                "The only menu in this program that has menu items");
+        
                 
         menuBar.add(menuInfection);
+        
+        
+        JButton writeToFile = new JButton("Write to file");
+        
+        writeToFile.setBackground(new Color(235,235,235));
+        
+        writeToFile.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                try{
+                    write();
+                }catch(IOException ioe){
+                    System.out.println(ioe);
+                }catch(InterruptedException ie){
+                    System.out.println(ie);
+                }
+                
+            }
+        });
+        
+        menuBar.add(writeToFile);
         
         rbMenuItem = new JRadioButtonMenuItem("0");
         rbMenuItem.setSelected(true);
@@ -227,6 +247,7 @@ public class World {
 	}
 	
     private void initDaisyWorld(){
+        text = "";
         sun = new Sun();
         fsoil = new ArrayList<FertileSoil>();
         wdaisy = new ArrayList<WhiteDaisy>();
@@ -554,6 +575,7 @@ public class World {
         System.out.println("white "+wdaisy.size());
         System.out.println("black " +bdaisy.size());
         System.out.println(globalTemp+"\n");
+        text+=globalTemp+",";
         
     }
     
@@ -572,6 +594,7 @@ public class World {
             //System.out.println("black " +bdaisy.size());
            // System.out.println(globalTemp+"\n");
         }
+        text += "\n";
     }
     
     public String getSelectedButtonText(ButtonGroup buttonGroup) {
@@ -584,6 +607,17 @@ public class World {
         }
 
         return null;
+    }
+    
+    public void write() throws IOException, InterruptedException{
+        try{
+            FileWriter out = new FileWriter("filename.txt");
+            out.write(text);
+			out.close();
+        }catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
 	public static double percentWhite(double localTemp, double STEADY_STATE){

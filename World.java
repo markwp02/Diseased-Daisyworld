@@ -32,7 +32,7 @@ public class World {
 	JButton[][] grid;
     JButton[][] heatGrid;
     JButton temp;
-	Thing[][] gridThings;
+	Thing[][] gridThings, updateGridThings;
 	List<FertileSoil> fsoil;
 	//List<InfertileSoil> isoil; = new ArrayList<InfertileSoil>();
 	List<WhiteDaisy> wdaisy; 
@@ -40,9 +40,10 @@ public class World {
     List<DiseasedDaisy> ddaisy;
     String text;
 	
-	double birthrate, deathrate = 0.1, perWhite, ran, chance = 0;
+	double birthrate, deathrate = 0.2, perWhite, ran, chance = 0;
     
-    final double INIT_TEMP = -10;
+    final double INIT_TEMP = 0;
+    //final double INIT_TEMP = 22.5;
     final double STEADY_STATE = 22.5;
     final double STEFAN_BOLTZMAN = 5.67*Math.pow(10,-8); //Joules/sec m^2 k^4
     final int SOLAR_FLUX = 917; // W/m^2
@@ -242,6 +243,7 @@ public class World {
 		grid=new JButton[x][y];
         heatGrid = new JButton[x][y];
 		gridThings = new Thing[x][y];
+        updateGridThings = new Thing[x][y];
 		initDaisyWorld();
 		
 	}
@@ -261,37 +263,49 @@ public class World {
 				grid[i][j] = soil.jb;
 				fsoil.add(soil);
 				gridThings[i][j] = soil;
+                updateGridThings[i][j] = soil;
+                
+                //WhiteDaisy daisy = new WhiteDaisy(globalTemp,i,j);
+               // grid[i][j] = daisy.jb;
+               // wdaisy.add(daisy);
+               // gridThings[i][j] = daisy;
+               // updateGridThings[i][j] = daisy;
                  //DiseasedDaisy daisy = new DiseasedDaisy(globalTemp,i,j,0);
                 // grid[i][j]=daisy.jb;
 				
 				temp = new JButton();
                 temp.setBackground(new Color(0,0,255));
                 heatGrid[i][j] = temp;
-				
-			
+							
 			}
 		}
+        //DiseasedDaisy daisy = new DiseasedDaisy(globalTemp,x-1,y-1,1);
+       // grid[x-1][y-1]=daisy.jb;
+       // ddaisy.add(daisy);
+       // gridThings[x-1][y-1] = daisy;
+       // updateGridThings[x-1][y-1] = daisy;
+        
         updateGrid();
         updateHeatMap();
     }
     
     public boolean infectedByNeighbours(int idx, int i, int j, boolean white){
         
-        boolean up,down,left,right;
+        boolean up,down,left,right,above,below;
         Daisy tmp;
         
         //Cell above
         if(i == x-1){
-            up = gridThings[0][j].isInfected();
+            above = gridThings[0][j].isInfected();
         }else{
-            up = gridThings[i+1][j].isInfected();
+            above = gridThings[i+1][j].isInfected();
         }
         //Cell below
         if(i == 0){
-            down = gridThings[x-1][j].isInfected();
+            below = gridThings[x-1][j].isInfected();
         }
         else{
-            down = gridThings[i-1][j].isInfected();
+            below = gridThings[i-1][j].isInfected();
         }
         //Cell to left
         if(j == 0){
@@ -307,10 +321,10 @@ public class World {
         else{
             right = gridThings[i][j+1].isInfected();
         }
-        
-        if(up || down || left || right){
+        //System.out.println(i +","+j+" "+above+" "+below+" "+left +" " + right);
+        if(above||below||left||right){
             double infectRate = Double.parseDouble(getSelectedButtonText(group));
-            //System.out.println(infectRate);
+           // System.out.println(infectRate + " " + i +","+j);
             return Math.random() < infectRate;
            /* if(Math.random() < infectRate){
                 System.out.println("Here");
@@ -339,7 +353,7 @@ public class World {
 				fsoil.add(soil);
 				grid[soil.i][soil.j] = soil.jb;	
 				
-				gridThings[soil.i][soil.j] = soil;
+				updateGridThings[soil.i][soil.j] = soil;
                                 
 			}
             else if(Math.random() < 0.01 || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
@@ -347,7 +361,7 @@ public class World {
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
                 ddaisy.add(daisy);
                 grid[daisy.i][daisy.j] = daisy.jb;	
-				gridThings[daisy.i][daisy.j] = daisy;
+				updateGridThings[daisy.i][daisy.j] = daisy;
             }
            
 
@@ -367,14 +381,14 @@ public class World {
 				fsoil.add(soil);
 				grid[soil.i][soil.j] = soil.jb;
 				
-				gridThings[soil.i][soil.j]=soil;  
+				updateGridThings[soil.i][soil.j]=soil;  
 			}
             else if(Math.random() < 0.01 || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
                 tmp = bdaisy.remove(idx);
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
                 ddaisy.add(daisy);
                 grid[daisy.i][daisy.j] = daisy.jb;	
-				gridThings[daisy.i][daisy.j] = daisy;
+				updateGridThings[daisy.i][daisy.j] = daisy;
             }
 			
 
@@ -394,7 +408,7 @@ public class World {
 				fsoil.add(soil);
 				grid[soil.i][soil.j] = soil.jb;
 				
-				gridThings[soil.i][soil.j]=soil;
+				updateGridThings[soil.i][soil.j]=soil;
 			}
             
 		}
@@ -414,14 +428,14 @@ public class World {
 					WhiteDaisy daisy = new WhiteDaisy(tmp.localTemp,tmp.i,tmp.j);
 					wdaisy.add(daisy);
 					grid[tmp.i][tmp.j] = daisy.jb;
-					gridThings[daisy.i][daisy.j]=daisy;
+					updateGridThings[daisy.i][daisy.j]=daisy;
 				}
 				else{
 					//System.out.println("black ");
 					BlackDaisy daisy = new BlackDaisy(tmp.localTemp,tmp.i,tmp.j);
 					bdaisy.add(daisy);
 					grid[tmp.i][tmp.j] = daisy.jb;
-					gridThings[daisy.i][daisy.j]=daisy;
+					updateGridThings[daisy.i][daisy.j]=daisy;
 				}
 				
 				
@@ -437,8 +451,9 @@ public class World {
 		bpanel.removeAll();
 		for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
-				bpanel.add(grid[i][j]);
-			
+				gridThings[i][j] = updateGridThings[i][j];
+                bpanel.add(grid[i][j]);
+                
 			}
 		}
 		
@@ -475,26 +490,28 @@ public class World {
 		double luminosity = sun.getLuminosity();
 		double albedoIncrease;
 		double absorbed;
-        double energyEmmitted, energyAbsorbed, energyReceived, energyReflected;
+        double energyEmmitted, energyAbsorbed, energyReceived, energyReflected, energy;
         int surfaceArea = 1;
-        double test;
+        double tPow4;
         JButton heatColor;
 		double diff;
 		for(int j=0;j<y;j++){
 			for(int i=0;i<x;i++){
-				tmp = gridThings[i][j];
+				tmp = updateGridThings[i][j];
                 albedo = tmp.getAlbedo();
                 
-                energyReceived = luminosity*SOLAR_FLUX;
-                energyReflected = energyReceived*albedo;
-                energyAbsorbed = energyReceived - energyReflected;
-                energyEmmitted = energyAbsorbed;
-
-                //rearrange Stefan-Boltzmann law
-                test =energyEmmitted/(EMISSIVITY*STEFAN_BOLTZMAN*surfaceArea);
-                tmp.localTemp = (Math.sqrt(Math.sqrt(test))) - 273;
-               // System.out.println(tmp.localTemp);
-                diff = averageNeighbours(gridThings,i,j,x-1,y-1) - tmp.localTemp;
+                //energyReceived = luminosity*SOLAR_FLUX;
+                //energyReflected = energyReceived*albedo;
+               // energyAbsorbed = energyReceived - energyReflected;
+               // energyEmmitted = energyAbsorbed;
+                energy = luminosity*(1-albedo);
+                
+                //rearrange Stefan-Boltzmann law to get temp to the power of 4
+                tPow4 =energy/(EMISSIVITY*STEFAN_BOLTZMAN*surfaceArea);
+                // convert to degrees Celsius
+                tmp.localTemp = (Math.sqrt(Math.sqrt(tPow4))) - 273;
+                //System.out.println(tmp.localTemp);
+                diff = averageNeighbours(updateGridThings,i,j,x-1,y-1) - tmp.localTemp;
                 tmp.localTemp += 1/4*diff;
 
                 
@@ -574,6 +591,7 @@ public class World {
         updateHeatMap();
         System.out.println("white "+wdaisy.size());
         System.out.println("black " +bdaisy.size());
+        System.out.println("diseased " + ddaisy.size());
         System.out.println(globalTemp+"\n");
         text+=globalTemp+",";
         
@@ -585,7 +603,7 @@ public class World {
 	 */
     public void runWorld() throws InterruptedException{
         
-        for(int i = 1; i<201;i++){
+        for(int i = 1; i<101;i++){
 			Thread.sleep(100);
             System.out.println("Step: " + i);
             step();

@@ -40,7 +40,7 @@ public class World {
     List<DiseasedDaisy> ddaisy;
     String text;
 	
-	double birthrate, deathrate = 0.2, perWhite, ran, chance = 0;
+	double birthrate, deathrate = 0.3, perWhite, ran, chance = 0;
     
     final double INIT_TEMP = 0;
     //final double INIT_TEMP = 22.5;
@@ -356,7 +356,7 @@ public class World {
 				updateGridThings[soil.i][soil.j] = soil;
                                 
 			}
-            else if(Math.random() < 0.01 || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
+            else if(Math.random() < 0.05 || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
                 tmp = wdaisy.remove(idx);
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
                 ddaisy.add(daisy);
@@ -383,7 +383,7 @@ public class World {
 				
 				updateGridThings[soil.i][soil.j]=soil;  
 			}
-            else if(Math.random() < 0.01 || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
+            else if(Math.random() < 0.05 || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
                 tmp = bdaisy.remove(idx);
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
                 ddaisy.add(daisy);
@@ -400,7 +400,7 @@ public class World {
     public void updateDiseasedDaisies(){
         for(int idx=0;idx<ddaisy.size();idx++){
 			DiseasedDaisy tmp = ddaisy.get(idx);
-			if(Math.random() <= deathrate || tmp.localTemp < 10 || tmp.localTemp > 40){
+			if(Math.random() <= deathrate/2 || tmp.localTemp < 5 || tmp.localTemp > 40){
 				tmp = ddaisy.remove(idx);
 				
 				//Daisy becomes fertile soil
@@ -495,6 +495,13 @@ public class World {
         double tPow4;
         JButton heatColor;
 		double diff;
+        double qPrime = 0.2;
+        double albedoWorld = (0.25*wdaisy.size() + 0.75*bdaisy.size() + 0.5*ddaisy.size() + 0.5*fsoil.size() ) / (wdaisy.size() + bdaisy.size() + fsoil.size());
+       // System.out.println(albedoWorld);
+       // energy = luminosity*SOLAR_FLUX*(1-albedoWorld);
+       // tPow4 =energy/STEFAN_BOLTZMAN;
+       // globalTemp = (Math.sqrt(Math.sqrt(tPow4))) - 273;
+        
 		for(int j=0;j<y;j++){
 			for(int i=0;i<x;i++){
 				tmp = updateGridThings[i][j];
@@ -504,12 +511,13 @@ public class World {
                 //energyReflected = energyReceived*albedo;
                // energyAbsorbed = energyReceived - energyReflected;
                // energyEmmitted = energyAbsorbed;
-                energy = luminosity*(1-albedo);
+                energy = luminosity*SOLAR_FLUX*(1-albedo);
                 
                 //rearrange Stefan-Boltzmann law to get temp to the power of 4
-                tPow4 =energy/(EMISSIVITY*STEFAN_BOLTZMAN*surfaceArea);
+                tPow4 =energy/STEFAN_BOLTZMAN;
                 // convert to degrees Celsius
                 tmp.localTemp = (Math.sqrt(Math.sqrt(tPow4))) - 273;
+              //  tmp.localTemp = qPrime*(albedoWorld-albedo) + globalTemp;
                 //System.out.println(tmp.localTemp);
                 diff = averageNeighbours(updateGridThings,i,j,x-1,y-1) - tmp.localTemp;
                 tmp.localTemp += 1/4*diff;
@@ -603,7 +611,7 @@ public class World {
 	 */
     public void runWorld() throws InterruptedException{
         
-        for(int i = 1; i<101;i++){
+        for(int i = 1; i<201;i++){
 			Thread.sleep(100);
             System.out.println("Step: " + i);
             step();
@@ -629,9 +637,10 @@ public class World {
     
     public void write() throws IOException, InterruptedException{
         try{
-            FileWriter out = new FileWriter("filename.txt");
+            FileWriter out = new FileWriter(getSelectedButtonText(group)+".txt",true);
             out.write(text);
 			out.close();
+            text = "";
         }catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -641,7 +650,7 @@ public class World {
 	public static double percentWhite(double localTemp, double STEADY_STATE){
 		double diff = localTemp - STEADY_STATE;
 		//System.out.println(diff);
-		double percent = 2*diff/100;
+		double percent = 3*diff/100;
 		if(percent >= 0.5)
 			return 1;
 		else if(percent <= -0.5)

@@ -41,15 +41,16 @@ public class World {
     String text;
 	
 	double birthrate, perWhite, ran, chance = 0;
-    double deathrate = 0.1;
-    final double INIT_TEMP = 0;
+    double deathrate = 0.05;
+    final double INIT_TEMP = -10;
     //final double INIT_TEMP = 22.5;
     final double STEADY_STATE = 22.5;
     final int DEGREE_TO_KELVIN = 273;
     //final double STEFAN_BOLTZMAN = 5.67*Math.pow(10,-8); //Joules/sec m^2 k^4
     final double STEFAN_BOLTZMAN = 5.6696*Math.pow(10,-8);
-    final int DIFFUSION = 500;
-    final int C = 2500;
+    final double DIFFUSION = 0.025;
+    //final int C = 2500;
+    final int C = 50;
     final int SOLAR_FLUX = 917; // W/m^2
     final double EMISSIVITY = 0.96;
     
@@ -114,20 +115,20 @@ public class World {
             }
         });
         
-        JButton hot = new JButton("hot");
+        JButton stop = new JButton("Stop");
         
-        reset.setBackground(new Color(235,235,235));
+        stop.setBackground(new Color(235,235,235));
         
-        reset.addActionListener(new ActionListener(){
+        stop.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                updateGridThings[0][0].localTemp = 1000;
+                //break;
             }
         });
         
         menuBar.add(runButton);
         menuBar.add(step);
         menuBar.add(reset);
-        menuBar.add(hot);
+        menuBar.add(stop);
         
        
 
@@ -374,7 +375,7 @@ public class World {
 				updateGridThings[soil.i][soil.j] = soil;
                                 
 			}
-            else if(Math.random() < 0.0 || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
+            else if(Math.random() < 0.001 || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
                 tmp = wdaisy.remove(idx);
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
                 ddaisy.add(daisy);
@@ -401,7 +402,7 @@ public class World {
 				
 				updateGridThings[soil.i][soil.j]=soil;  
 			}
-            else if(Math.random() < 0.0 || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
+            else if(Math.random() < 0.001 || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
                 tmp = bdaisy.remove(idx);
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
                 ddaisy.add(daisy);
@@ -541,13 +542,14 @@ public class World {
                // tmp.localTemp += 1/4*diff;
 
                //System.out.println(tmp.localTemp);
-               double diffusion = (DIFFUSION*difference(gridThings,i,j,x-1,y-1))/C;
+               double diffusion = (DIFFUSION*difference(gridThings,i,j,x-1,y-1))*tmp.localTemp/C;
                double sunEnergy  = (SOLAR_FLUX*luminosity*(1-albedo)-STEFAN_BOLTZMAN*Math.pow(tmp.localTemp,4))/C;
                double change = diffusion + sunEnergy;
 
                tmp.newTemp += change;
                // System.out.println(diffusion + " " + sunEnergy + " " +change + " " + tmp.newTemp);
-                //System.out.println(change + " " + tmp.newTemp);
+                //System.out.println(sunEnergy + " " + tmp.newTemp);
+               // System.out.println(change);
                 if(tmp.localTemp - DEGREE_TO_KELVIN < 5){
                         heatColor = new JButton();
                         heatColor.setBackground(new Color(0,0,255)); // navy blue
@@ -644,7 +646,7 @@ public class World {
 	 */
     public void runWorld() throws InterruptedException{
         
-        for(int i = 1; i<251;i++){
+        for(int i = 1; i<151;i++){
 			Thread.sleep(10);
             System.out.println("Step: " + i);
             step();
@@ -683,7 +685,7 @@ public class World {
 	public static double percentWhite(double localTemp, double STEADY_STATE){
 		double diff = localTemp - STEADY_STATE;
 		//System.out.println(diff);
-		double percent = diff/100;
+		double percent = 2*diff/100;
 		if(percent >= 0.5)
 			return 1;
 		else if(percent <= -0.5)
@@ -779,7 +781,7 @@ public class World {
 	 */
 	public static void main(String[] args) throws InterruptedException {
 		// TODO Auto-generated method stub
-		World world = new World(30,30);
+		World world = new World(40,40);
        
 	}
 

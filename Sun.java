@@ -6,7 +6,7 @@ public class Sun {
     //final double increase = 0.003;
     //final double increase = 0.004;
     //final double increase = 5.8;
-    final double increase = 0.005;
+    final double increase = 0.01;
 	public Sun(){
 		//luminosity = 1.0;
         luminosity = 0.6;

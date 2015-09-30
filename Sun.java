@@ -10,6 +10,7 @@ public class Sun {
 	public Sun(){
 		//luminosity = 1.0;
         luminosity = 0.6;
+        
         //luminosity = 295.5;
        //luminosity = 415;
        //luminosity = 830;

@@ -13,6 +13,7 @@ public abstract class Thing {
 
 	JButton jb;
 	double localTemp;
+    double newTemp;
 	int i,j;
 	double albedo;
     boolean infected;
@@ -20,6 +21,7 @@ public abstract class Thing {
 	public Thing(String image, double localTemp,int i,int j){
 		jb = new JButton(new ImageIcon(image));
 		this.localTemp = localTemp;
+        this.newTemp = localTemp;
 		this.i=i;
 		this.j=j;
         this.infected = false;

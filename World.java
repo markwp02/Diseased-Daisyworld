@@ -10,63 +10,57 @@ import java.util.List;
 import static java.lang.Math.pow;
 
 
-
+/**
+* World object, contains all of Diseased Daisyworld. Diseased Daisyworld is an agent based
+* extension to the Lovelock and Watson mathematical model, with the added perturbation of a 
+* bacterial disease added
+*
+* @author Mark Paterson 22643202
+* @version 1.0
+* @since 1/10/2015
+*/
 public class World {
 
     Sun sun;
     JComboBox<String> infectComboBox;
-	JFrame frame = new JFrame();
-    JFrame heatFrame = new JFrame();
-    JPanel mainPanel = new JPanel();
-    JPanel bpanel = new JPanel();
-    JPanel rightpanel = new JPanel();
+	JFrame frame = new JFrame(), heatFrame = new JFrame();
+    JPanel mainPanel = new JPanel(), bpanel = new JPanel();
     
     JMenuBar menuBar = new JMenuBar();
     JMenu menuInfection;
-    JRadioButtonMenuItem rbMenuItem;
-   
-   ButtonGroup group = new ButtonGroup();
+    JRadioButtonMenuItem rbMenuItem; 
+    ButtonGroup group = new ButtonGroup();
     
-	
 	int x,y, count;
-	JButton[][] grid;
-    JButton[][] heatGrid;
+	JButton[][] grid, heatGrid;
     JButton temp, step, runButton, stop, reset;
 	Thing[][] gridThings, updateGridThings;
-	List<FertileSoil> fsoil;
-	//List<InfertileSoil> isoil; = new ArrayList<InfertileSoil>();
+	List<Ground> bground;
 	List<WhiteDaisy> wdaisy; 
     List<BlackDaisy> bdaisy; 
     List<DiseasedDaisy> ddaisy;
     String text;
 	
-	double birthrate, perWhite, ran, chance = 0;
-    double deathrate = 0.02;
-    final double INIT_TEMP = -10;
-    //final double INIT_TEMP = 22.5;
-    final double STEADY_STATE = 22.5;
-    final int DEGREE_TO_KELVIN = 273;
-    //final double STEFAN_BOLTZMAN = 5.67*Math.pow(10,-8); //Joules/sec m^2 k^4
-    final double STEFAN_BOLTZMAN = 5.6696*Math.pow(10,-8);
-    final double DIFFUSION = 0.025;
-    //final int C = 2500;
-    final int C = 50;
-    final int SOLAR_FLUX = 917; // W/m^2
-    final double EMISSIVITY = 0.96;
+	double deathrate = 0.02 ,perWhite;
+    final double INIT_TEMP = -10, STEFAN_BOLTZMAN = 5.6696*Math.pow(10,-8), DIFFUSION = 0.025, INTRODUCE_DISEASE = 0.0001;
+    final int DEGREE_TO_KELVIN = 273, C = 50, SOLAR_FLUX = 917;  
     
     double globalTemp = INIT_TEMP;
     
     static boolean halt;
     
 	/**
-	 * @param x
-	 * @param y
+	 * @param x rows of grid
+	 * @param y columns of grid
 	 */
 	public World(int x, int y){
+		initGraphics(x,y);
+		initDaisyWorld();
+		
+	}
 	
-
-    
-    
+	private void initGraphics(int x, int y){
+		
 		// get the screen size as a java dimension
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		 
@@ -91,11 +85,9 @@ public class World {
         
         runButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                //System.out.println("step");
                 new Thread() {
                     public void run(){
                         try{
-                        //  Thread.sleep(1000);
                             runWorld();
                         }catch (InterruptedException ie){
                             System.out.println(ie);
@@ -113,40 +105,20 @@ public class World {
         reset.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 initDaisyWorld();
-                //System.out.println(gridThings[1][1].localTemp);
             }
-        });
-        
+        });        
         stop = new JButton("Stop");
-        
-        stop.setBackground(new Color(235,235,235));
-        
-        
-        
+        stop.setBackground(new Color(235,235,235));  
         menuBar.add(runButton);
         menuBar.add(step);
         menuBar.add(reset);
         menuBar.add(stop);
-        
-       
-
-        
-       menuBar.setOpaque(true);
-       menuBar.setBackground(new Color(235,235,235));
-        
-        menuInfection = new JMenu("Infection Rate");
-        
-        
-        
-        
-                
+        menuBar.setOpaque(true);
+        menuBar.setBackground(new Color(235,235,235)); 
+        menuInfection = new JMenu("Infection Rate");    
         menuBar.add(menuInfection);
-        
-        
-        JButton writeToFile = new JButton("Write to file");
-        
-        writeToFile.setBackground(new Color(235,235,235));
-        
+        JButton writeToFile = new JButton("Write to file");      
+        writeToFile.setBackground(new Color(235,235,235));      
         writeToFile.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 try{
@@ -210,97 +182,58 @@ public class World {
         frame.setJMenuBar(menuBar);
         
         frame.add(mainPanel);
-        //frame.add(bpanel);
         mainPanel.add(bpanel);
-       // mainPanel.add(rightpanel);
         
 		this.x=x;
 		this.y=y;
-        //mainPanel.setLayout(new GridBagLayout());
         mainPanel.setLayout(new GridLayout());
-        
-        
-        
-       
-        
 		bpanel.setLayout(new GridLayout(x, y));
-       
-        
- 
-        
-        
-        
+
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
-        //frame.setLocationRelativeTo(null);
-        //frame.setLocationByPlatform(true);
 		frame.setTitle("Diseased Daisyworld");
-		frame.setVisible(true);
-        
+		frame.setVisible(true);       
         heatFrame.setLayout(new GridLayout(x, y));
 		heatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		heatFrame.pack();
-        //heatFrame.setLocationByPlatform(true);
 		heatFrame.setTitle("Heatmap of Daisyworld");
         
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
         Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
         int xWidth = (int) rect.getMaxX() - heatFrame.getWidth();
-        //int yHeight = (int) rect.getMaxY() - heatFrame.getHeight();
         int yHeight = 0;
         heatFrame.setLocation(xWidth, yHeight);
         heatFrame.setVisible(true);
-        
-        
+      
 		heatFrame.setVisible(true);
 		grid=new JButton[x][y];
         heatGrid = new JButton[x][y];
 		gridThings = new Thing[x][y];
         updateGridThings = new Thing[x][y];
-		initDaisyWorld();
-		
 	}
 	
     private void initDaisyWorld(){
         text = "";
         sun = new Sun();
-        fsoil = new ArrayList<FertileSoil>();
+		bground = new ArrayList<Ground>();
         wdaisy = new ArrayList<WhiteDaisy>();
         bdaisy = new ArrayList<BlackDaisy>();
         ddaisy = new ArrayList<DiseasedDaisy>();
         globalTemp = INIT_TEMP;
         for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
-				
-				FertileSoil soil = new FertileSoil(globalTemp + DEGREE_TO_KELVIN,i,j);
-				grid[i][j] = soil.jb;
-				fsoil.add(soil);
-				gridThings[i][j] = soil;
-                updateGridThings[i][j] = soil;
-                
-                //WhiteDaisy daisy = new WhiteDaisy(globalTemp,i,j);
-               // grid[i][j] = daisy.jb;
-               // wdaisy.add(daisy);
-               // gridThings[i][j] = daisy;
-               // updateGridThings[i][j] = daisy;
-                 //DiseasedDaisy daisy = new DiseasedDaisy(globalTemp,i,j,0);
-                // grid[i][j]=daisy.jb;
-				
+				Ground ground = new Ground(globalTemp + DEGREE_TO_KELVIN,i,j);
+				grid[i][j] = ground.jb;
+				bground.add(ground);
+				gridThings[i][j] = ground;
+                updateGridThings[i][j] = ground;
 				temp = new JButton();
                 temp.setBackground(new Color(0,0,255));
                 heatGrid[i][j] = temp;
 							
 			}
 		}
-        //gridThings[x/2][x/2].localTemp = 1000;
-       // updateGridThings[x/2][x/2].localTemp = 1000;
-        
-        //DiseasedDaisy daisy = new DiseasedDaisy(globalTemp,x-1,y-1,1);
-       // grid[x-1][y-1]=daisy.jb;
-       // ddaisy.add(daisy);
-       // gridThings[x-1][y-1] = daisy;
-       // updateGridThings[x-1][y-1] = daisy;
         
         updateGrid();
         updateHeatMap();
@@ -338,22 +271,9 @@ public class World {
         else{
             right = gridThings[i][j+1].isInfected();
         }
-        //System.out.println(i +","+j+" "+above+" "+below+" "+left +" " + right);
         if(above||below||left||right){
             double infectRate = Double.parseDouble(getSelectedButtonText(group));
-           // System.out.println(infectRate + " " + i +","+j);
             return Math.random() < infectRate;
-           /* if(Math.random() < infectRate){
-                System.out.println("Here");
-                if(white)
-                    tmp = wdaisy.remove(idx);
-                else
-                    tmp = bdaisy.remove(idx);
-                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,i,j,infectRate);
-                ddaisy.add(daisy);
-                grid[daisy.i][daisy.j] = daisy.jb;	
-				gridThings[daisy.i][daisy.j] = daisy;
-            }*/
         }
         return false;
     }
@@ -365,26 +285,22 @@ public class World {
 			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < 5 || tmp.localTemp - DEGREE_TO_KELVIN > 40){
 				tmp = wdaisy.remove(idx);
 				
-				//Daisy becomes fertile soil
-				FertileSoil soil = new FertileSoil(tmp.localTemp,tmp.i,tmp.j);
-				fsoil.add(soil);
-				grid[soil.i][soil.j] = soil.jb;	
+				//Daisy becomes bare ground
+				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
+				bground.add(ground);
+				grid[ground.i][ground.j] = ground.jb;	
 				
-				updateGridThings[soil.i][soil.j] = soil;
+				updateGridThings[ground.i][ground.j] = ground;
                                 
 			}
-            else if(Math.random() < 0.001 || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
+            else if(Math.random() < INTRODUCE_DISEASE || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
                 tmp = wdaisy.remove(idx);
-                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
+                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j);
                 ddaisy.add(daisy);
                 grid[daisy.i][daisy.j] = daisy.jb;	
 				updateGridThings[daisy.i][daisy.j] = daisy;
             }
-           
-
-			
-		}
-		
+		}	
 	}
 	
 	public void updateBlackDaisies(){
@@ -392,113 +308,82 @@ public class World {
 			BlackDaisy tmp = bdaisy.get(idx);
 			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < 5 || tmp.localTemp - DEGREE_TO_KELVIN > 40){
 				tmp = bdaisy.remove(idx);
-				
-				//Daisy becomes fertile soil
-				FertileSoil soil = new FertileSoil(tmp.localTemp,tmp.i,tmp.j);
-				fsoil.add(soil);
-				grid[soil.i][soil.j] = soil.jb;
-				
-				updateGridThings[soil.i][soil.j]=soil;  
+				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
+				bground.add(ground);
+				grid[ground.i][ground.j] = ground.jb;
+				updateGridThings[ground.i][ground.j]=ground;  
 			}
-            else if(Math.random() < 0.001 || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
+            else if(Math.random() < INTRODUCE_DISEASE || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
                 tmp = bdaisy.remove(idx);
-                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j,Double.parseDouble(getSelectedButtonText(group)));
+                DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j);
                 ddaisy.add(daisy);
                 grid[daisy.i][daisy.j] = daisy.jb;	
 				updateGridThings[daisy.i][daisy.j] = daisy;
-            }
-			
-
-		}
-		
-		
+            }			
+		}		
 	}
 	
     public void updateDiseasedDaisies(){
         for(int idx=0;idx<ddaisy.size();idx++){
 			DiseasedDaisy tmp = ddaisy.get(idx);
 			if(Math.random() <= deathrate*2 || tmp.localTemp - DEGREE_TO_KELVIN < 5 || tmp.localTemp - DEGREE_TO_KELVIN > 40){
-				tmp = ddaisy.remove(idx);
-				
-				//Daisy becomes fertile soil
-				FertileSoil soil = new FertileSoil(tmp.localTemp,tmp.i,tmp.j);
-				fsoil.add(soil);
-				grid[soil.i][soil.j] = soil.jb;
-				
-				updateGridThings[soil.i][soil.j]=soil;
-			}
-            
+				tmp = ddaisy.remove(idx);				
+				//Daisy becomes bare ground
+				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
+				bground.add(ground);
+				grid[ground.i][ground.j] = ground.jb;
+				updateGridThings[ground.i][ground.j]=ground;
+			}        
 		}
     }
-    
-	public void updateFertileSoil(){
-		for(int idx=0;idx<fsoil.size();idx++){
-			FertileSoil tmp = fsoil.get(idx);
+
+	public void updateGround(){
+		for(int idx=0;idx<bground.size();idx++){
+			Ground tmp = bground.get(idx);
 			if(Math.random() <= growthRateDaisy(tmp.localTemp-DEGREE_TO_KELVIN)){
-				tmp = fsoil.remove(idx);
+				tmp = bground.remove(idx);
 				
 				perWhite = percentWhite(tmp.localTemp - DEGREE_TO_KELVIN);
-				//perWhite = 1;
-				//System.out.println(perWhite);
 				if(Math.random() <= perWhite){
-					//System.out.print("white ");
 					WhiteDaisy daisy = new WhiteDaisy(tmp.localTemp,tmp.i,tmp.j);
 					wdaisy.add(daisy);
 					grid[tmp.i][tmp.j] = daisy.jb;
 					updateGridThings[daisy.i][daisy.j]=daisy;
 				}
 				else{
-					//System.out.println("black ");
 					BlackDaisy daisy = new BlackDaisy(tmp.localTemp,tmp.i,tmp.j);
 					bdaisy.add(daisy);
 					grid[tmp.i][tmp.j] = daisy.jb;
 					updateGridThings[daisy.i][daisy.j]=daisy;
-				}
-				
-				
-				
+				}												
 			}
-		}
-		
+		}		
 	}
 	
 	public void updateGrid(){
-		
-		//frame.getContentPane().removeAll();
 		bpanel.removeAll();
 		for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
 				gridThings[i][j] = updateGridThings[i][j];
-                bpanel.add(grid[i][j]);
-                
+                bpanel.add(grid[i][j]);               
 			}
-		}
-		
-		bpanel.revalidate();
-		
-		bpanel.repaint();
-		 
-	}
-	
-    public void updateHeatMap(){
-		
-		heatFrame.getContentPane().removeAll();
-		
+		}		
+		bpanel.revalidate();		
+		bpanel.repaint();		 
+	}	
+    
+	public void updateHeatMap(){		
+		heatFrame.getContentPane().removeAll();		
 		for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
-				heatFrame.add(heatGrid[i][j]);
-			
+				heatFrame.add(heatGrid[i][j]);		
 			}
-		}
-		
-		heatFrame.revalidate();
-		
-		heatFrame.repaint();
-		 
+		}		
+		heatFrame.revalidate();		
+		heatFrame.repaint();		 
 	}
     
-    
-    
+        
 	public void updateTemp(){
 		double totalTemp = 0;
 		double totalNum = 0;
@@ -513,41 +398,18 @@ public class World {
         JButton heatColor;
 		double diff;
         double qPrime = 0.2;
-        //double albedoWorld = (0.25*wdaisy.size() + 0.75*bdaisy.size() + 0.5*ddaisy.size() + 0.5*fsoil.size() ) / (wdaisy.size() + bdaisy.size() + fsoil.size());
-       // System.out.println(albedoWorld);
-       // energy = luminosity*SOLAR_FLUX*(1-albedoWorld);
-       // tPow4 =energy/STEFAN_BOLTZMAN;
-       // globalTemp = (Math.sqrt(Math.sqrt(tPow4))) - 273;
-        
+
 		for(int j=0;j<y;j++){
 			for(int i=0;i<x;i++){
 				tmp = updateGridThings[i][j];
                 albedo = tmp.getAlbedo();
-                
-                //energyReceived = luminosity*SOLAR_FLUX;
-                //energyReflected = energyReceived*albedo;
-               // energyAbsorbed = energyReceived - energyReflected;
-               // energyEmmitted = energyAbsorbed;
-               // energy = luminosity*SOLAR_FLUX*(1-albedo);
-                
-                //rearrange Stefan-Boltzmann law to get temp to the power of 4
-               // tPow4 =energy/STEFAN_BOLTZMAN;
-                // convert to degrees Celsius
-               // tmp.localTemp = (Math.sqrt(Math.sqrt(tPow4))) - 273;
-              //  tmp.localTemp = qPrime*(albedoWorld-albedo) + globalTemp;
-                //System.out.println(tmp.localTemp);
-               // diff = averageNeighbours(updateGridThings,i,j,x-1,y-1) - tmp.localTemp;
-               // tmp.localTemp += 1/4*diff;
-
-               //System.out.println(tmp.localTemp);
+ 
                double diffusion = (DIFFUSION*difference(gridThings,i,j,x-1,y-1))*tmp.localTemp/C;
                double sunEnergy  = (SOLAR_FLUX*luminosity*(1-albedo)-STEFAN_BOLTZMAN*Math.pow(tmp.localTemp,4))/C;
                double change = diffusion + sunEnergy;
 
                tmp.newTemp += change;
-               // System.out.println(diffusion + " " + sunEnergy + " " +change + " " + tmp.newTemp);
-                //System.out.println(sunEnergy + " " + tmp.newTemp);
-               // System.out.println(change);
+           
                 if(tmp.localTemp - DEGREE_TO_KELVIN < 5){
                         heatColor = new JButton();
                         heatColor.setBackground(new Color(0,0,255)); // navy blue
@@ -575,19 +437,16 @@ public class World {
                 }                  
                 else{
                         heatColor = new JButton();
-                        heatColor.setBackground(new Color(0,0,0));
+                        heatColor.setBackground(new Color(0,0,0)); // black
                         heatGrid[i][j] = heatColor;
                 }                    
-				//System.out.print(tmp.localTemp+" ");
 			}
-			//System.out.println();
 		}
 		
 		for(int idx=0;idx<wdaisy.size();idx++){
 			wdaisy.get(idx).localTemp = wdaisy.get(idx).newTemp;
             localTemp = wdaisy.get(idx).localTemp;
 			totalTemp += localTemp;
-			//System.out.println(localTemp);
 			totalNum++;
 		}
 		for(int idx=0;idx<bdaisy.size();idx++){
@@ -595,15 +454,13 @@ public class World {
 
 			localTemp = bdaisy.get(idx).localTemp;
 			totalTemp += localTemp;
-			//System.out.println(localTemp);
 			totalNum++;
 		}
-		for(int idx=0;idx<fsoil.size();idx++){
-			fsoil.get(idx).localTemp = fsoil.get(idx).newTemp;
+		for(int idx=0;idx<bground.size();idx++){
+			bground.get(idx).localTemp = bground.get(idx).newTemp;
 
-            localTemp = fsoil.get(idx).localTemp;
+            localTemp = bground.get(idx).localTemp;
 			totalTemp += localTemp;
-			//System.out.println(localTemp);
 			totalNum++;
 		}
 		for(int idx=0;idx<ddaisy.size();idx++){
@@ -611,19 +468,21 @@ public class World {
 
             localTemp = ddaisy.get(idx).localTemp;
 			totalTemp += localTemp;
-			//System.out.println(localTemp);
 			totalNum++;
 		}
-        //System.out.println(totalTemp/totalNum);
 		this.globalTemp = totalTemp / totalNum - DEGREE_TO_KELVIN;
+}
+
+public void updateDaisies(){
+	updateBlackDaisies();
+	updateWhiteDaisies();
+	updateDiseasedDaisies();
 }
 	
 public void step(){
 
-	updateFertileSoil();
-	updateWhiteDaisies();
-    updateBlackDaisies();
-    updateDiseasedDaisies();
+	updateGround();
+	updateDaisies();
     sun.updateSun();
     updateTemp();
     updateHeatMap();
@@ -643,11 +502,9 @@ public void step(){
 
     
         for(int i=0;i<10;i++){
-            updateFertileSoil();
-            updateWhiteDaisies();
-            updateBlackDaisies();
-            updateDiseasedDaisies();
-		
+ 
+			updateGround();
+			updateDaisies();
             updateTemp();
             updateHeatMap();
             updateGrid();
@@ -697,25 +554,7 @@ public void step(){
             stepConverge();
 			count++;
 		}	
-		/*
-		for(int i = 1; i<151;i++){
-			if(halt)
-                break;
-            stop.addActionListener(new ActionListener(){
-            public void actionPerformed(ActionEvent e){
-                World.halt = true;
-            }
-            });
-            
-            Thread.sleep(100);
-            System.out.println("Step: " + i);
-            step();
-            
-            ///System.out.println("white "+wdaisy.size());
-            //System.out.println("black " +bdaisy.size());
-           // System.out.println(globalTemp+"\n");
-        }
-		*/
+		
         text += "\n";
     }
     
@@ -792,7 +631,6 @@ public void step(){
         }else{
             total = gridThings[i+1][j].localTemp;
         }
-        //System.out.println(total);
         //Cell below
         if(i == 0){
             total +=  gridThings[xMax][j].localTemp;
@@ -800,7 +638,6 @@ public void step(){
         else{
             total += gridThings[i-1][j].localTemp;
         }
-              //  System.out.println(total);
 
         //Cell to left
         if(j == 0){
@@ -809,7 +646,6 @@ public void step(){
         else{
             total += gridThings[i][j-1].localTemp;
         }
-          //      System.out.println(total);
 
         //Cell to right
         if(j == YMax){
@@ -818,10 +654,8 @@ public void step(){
         else{
             total += gridThings[i][j+1].localTemp;
         }
-        //        System.out.println(total);
 
         total -= 4*gridThings[i][j].localTemp;
-       // System.out.println(total);
         return total;
             
     }

@@ -25,8 +25,8 @@ public class World {
     Sun sun;
     JComboBox<String> infectComboBox;
 	JFrame frame = new JFrame(), heatFrame = new JFrame();
-    JPanel mainPanel = new JPanel(), bpanel = new JPanel();
-    
+    JPanel mainPanel = new JPanel(), bpanel = new JPanel(), hpanel = new JPanel();
+    JLabel showTemp = new JLabel();
     JMenuBar menuBar = new JMenuBar();
     JMenu menuInfection;
     JRadioButtonMenuItem rbMenuItem; 
@@ -43,7 +43,8 @@ public class World {
     String text;
 	
 	double deathrate = 0.05 , diseasedDeathrate = 2*deathrate, perWhite;
-    final double INIT_TEMP = -10, STEFAN_BOLTZMAN = 5.6696*Math.pow(10,-8), DIFFUSION = 0.025, INTRODUCE_DISEASE = 0.0001;
+    final double INIT_TEMP = -10, MIN_DAISY_TEMP = 5, MAX_DAISY_TEMP = 40;
+	final double STEFAN_BOLTZMAN = 5.6696*Math.pow(10,-8), DIFFUSION = 0.025, INTRODUCE_DISEASE = 0.0001;
     final int DEGREE_TO_KELVIN = 273, C = 50, SOLAR_FLUX = 917;  
     
     double globalTemp = INIT_TEMP;
@@ -117,9 +118,9 @@ public class World {
 		// get the screen size as a java dimension
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		 
-		// get 2/3 of the height, and 2/3 of the width
-		int height = screenSize.height * 1 / 2;
-		int width = screenSize.width * 1 / 2;
+		// get 2/3 of the screen for height and width
+		int height = screenSize.height * 2 / 3;
+		int width = height;
 		 
 		// set the jframe height and width
 		frame.setPreferredSize(new Dimension(width, height));
@@ -232,6 +233,10 @@ public class World {
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
+       
+        showTemp.setText(String.format("%.2f°C",globalTemp));
+        menuBar.add(showTemp);
+        
         frame.setJMenuBar(menuBar);
         
         frame.add(mainPanel);
@@ -245,8 +250,9 @@ public class World {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.pack();
 		frame.setTitle("Diseased Daisyworld");
-		frame.setVisible(true);       
-        heatFrame.setLayout(new GridLayout(x, y));
+		frame.setVisible(true); 
+		heatFrame.add(hpanel);
+		hpanel.setLayout((new GridLayout(x,y)));
 		heatFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		heatFrame.pack();
 		heatFrame.setTitle("Heatmap of Daisyworld");
@@ -254,9 +260,16 @@ public class World {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
         Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
-        int xWidth = (int) rect.getMaxX() - heatFrame.getWidth();
+        int xWidth =  (int)((int) 1*rect.getMaxX()/6); 
+        //int xWidth = frame.getWidth();
         int yHeight = 0;
-        heatFrame.setLocation(xWidth, yHeight);
+        
+        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+        frame.setLocation(dim.width/2-frame.getSize().width-1, dim.height/2-frame.getSize().height/2);
+        
+        //frame.setLocation(xWidth,yHeight);
+        int xWidthH = xWidth + heatFrame.getWidth();
+        heatFrame.setLocation(dim.width/2+1, dim.height/2-frame.getSize().height/2);
         heatFrame.setVisible(true);
       
 		heatFrame.setVisible(true);
@@ -321,7 +334,7 @@ public class World {
        
 		for(int idx=0;idx<wdaisy.size();idx++){
 			WhiteDaisy tmp = wdaisy.get(idx);
-			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < 5 || tmp.localTemp - DEGREE_TO_KELVIN > 40){
+			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
 				tmp = wdaisy.remove(idx);
 				
 				//Daisy becomes bare ground
@@ -348,7 +361,7 @@ public class World {
 	public void updateBlackDaisies(){
 		for(int idx=0;idx<bdaisy.size();idx++){
 			BlackDaisy tmp = bdaisy.get(idx);
-			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < 5 || tmp.localTemp - DEGREE_TO_KELVIN > 40){
+			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
 				tmp = bdaisy.remove(idx);
 				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
 				bground.add(ground);
@@ -371,7 +384,7 @@ public class World {
     public void updateDiseasedDaisies(){
         for(int idx=0;idx<ddaisy.size();idx++){
 			DiseasedDaisy tmp = ddaisy.get(idx);
-			if(Math.random() <= diseasedDeathrate || tmp.localTemp - DEGREE_TO_KELVIN < 5 || tmp.localTemp - DEGREE_TO_KELVIN > 40){
+			if(Math.random() <= diseasedDeathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
 				tmp = ddaisy.remove(idx);				
 				//Daisy becomes bare ground
 				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
@@ -427,14 +440,18 @@ public class World {
 	* Updates the heat map
 	**/
 	public void updateHeatMap(){		
-		heatFrame.getContentPane().removeAll();		
+		//showTemp = new JLabel(String.format("%.2f°C",globalTemp));
+		showTemp.setText(String.format("%.2f°C",globalTemp));
+		//showTemp.repaint();
+		hpanel.removeAll();
+		//heatFrame.getContentPane().removeAll();		
 		for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
-				heatFrame.add(heatGrid[i][j]);		
+				hpanel.add(heatGrid[i][j]);		
 			}
 		}		
-		heatFrame.revalidate();		
-		heatFrame.repaint();		 
+		hpanel.revalidate();		
+		hpanel.repaint();		 
 	}
     
     /**

@@ -1,4 +1,4 @@
-function  graph(filename,colour)
+function avg = graph(filename,colour)
 
 fileID = fopen(filename,'r');
 line = fgets(fileID);

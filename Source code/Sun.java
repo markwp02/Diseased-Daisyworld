@@ -8,10 +8,11 @@
 public class Sun {
 
 	double luminosity;
-    final double increase = 0.01;
+    final double increase = 0.005;
 	
 	public Sun(){
-        luminosity = 0.6;
+        luminosity = 0.65;
+		//luminosity = 1;
 	}
 	
 	/**

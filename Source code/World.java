@@ -5,9 +5,12 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import javax.swing.*;
+
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Random;
+
 import static java.lang.Math.pow;
 
 
@@ -21,7 +24,7 @@ import static java.lang.Math.pow;
 * @since 1/10/2015
 */
 public class World {
-
+	Random generator = new Random(seed);
     Sun sun;
     JComboBox<String> infectComboBox;
 	JFrame frame = new JFrame(), heatFrame = new JFrame();
@@ -42,14 +45,17 @@ public class World {
     List<DiseasedDaisy> ddaisy;
     String text;
 	
-	double deathrate = 0.05 , diseasedDeathrate = 2*deathrate, perWhite;
-    final double INIT_TEMP = -10, MIN_DAISY_TEMP = 5, MAX_DAISY_TEMP = 40;
-	final double STEFAN_BOLTZMAN = 5.6696*Math.pow(10,-8), DIFFUSION = 0.025, INTRODUCE_DISEASE = 0.0001;
+	double deathrate = 0.05 , diseasedDeathrate = 2*deathrate, perWhite, perBlack;
+
+    final double INIT_TEMP = 0, MIN_DAISY_TEMP = 5, MAX_DAISY_TEMP = 40;
+	final double STEFAN_BOLTZMAN = 5.6696*Math.pow(10,-8), DIFFUSION = 0.02, INTRODUCE_DISEASE = 0.0001;
     final int DEGREE_TO_KELVIN = 273, C = 50, SOLAR_FLUX = 917;  
     
-    double globalTemp = INIT_TEMP;
-    static int stepNum = 0;
+    double globalTemp = INIT_TEMP, ran;
+    static int stepNum = 0, seed = 1;
     static boolean halt;
+    
+   
     
 	/**
 	 * @param x rows of grid
@@ -82,7 +88,8 @@ public class World {
 	* the initial temp and the world is populated with bare ground.
 	*/
 	private void initDaisyWorld(){
-        text = "";
+		
+		text = "";
 		stepNum = 1;
         sun = new Sun();
 		bground = new ArrayList<Ground>();
@@ -92,11 +99,26 @@ public class World {
         globalTemp = INIT_TEMP;
         for(int i=0;i<x;i++){
 			for(int j=0;j<y;j++){
+				//if(i == 1 && j == 1){
 				Ground ground = new Ground(globalTemp + DEGREE_TO_KELVIN,i,j);
 				grid[i][j] = ground.jb;
 				bground.add(ground);
 				gridThings[i][j] = ground;
-                updateGridThings[i][j] = ground;
+				updateGridThings[i][j] = ground;
+				/*DiseasedDaisy daisy = new DiseasedDaisy(globalTemp + DEGREE_TO_KELVIN,i,j);
+				//grid[i][j] = daisy.jb;
+				//ddaisy.add(daisy);
+				//gridThings[i][j] = daisy;
+				//updateGridThings[i][j] = daisy;
+				}
+				else{
+				BlackDaisy daisy = new BlackDaisy(globalTemp + DEGREE_TO_KELVIN,i,j);
+				grid[i][j] = daisy.jb;
+				bdaisy.add(daisy);
+				gridThings[i][j] = daisy;
+				updateGridThings[i][j] = daisy;
+				}
+				*/
 				temp = new JButton();
                 temp.setBackground(new Color(0,0,255));
                 heatGrid[i][j] = temp;
@@ -193,43 +215,93 @@ public class World {
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
 
+        rbMenuItem = new JRadioButtonMenuItem("0.02");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.04");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.06");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.08");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
         rbMenuItem = new JRadioButtonMenuItem("0.1");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.12");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.14");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.16");
+        //rbMenuItem.setSelected(true);
+        group.add(rbMenuItem);
+        menuInfection.add(rbMenuItem);
+        
+        rbMenuItem = new JRadioButtonMenuItem("0.18");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.2");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.3");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.4");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.5");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.6");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.7");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.8");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("0.9");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
         rbMenuItem = new JRadioButtonMenuItem("1.0");
+        //rbMenuItem.setSelected(true);
         group.add(rbMenuItem);
         menuInfection.add(rbMenuItem);
         
@@ -261,13 +333,11 @@ public class World {
         GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
         Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
         int xWidth =  (int)((int) 1*rect.getMaxX()/6); 
-        //int xWidth = frame.getWidth();
         int yHeight = 0;
         
         Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
         frame.setLocation(dim.width/2-frame.getSize().width-1, dim.height/2-frame.getSize().height/2);
         
-        //frame.setLocation(xWidth,yHeight);
         int xWidthH = xWidth + heatFrame.getWidth();
         heatFrame.setLocation(dim.width/2+1, dim.height/2-frame.getSize().height/2);
         heatFrame.setVisible(true);
@@ -293,13 +363,13 @@ public class World {
         boolean up,down,left,right,above,below;
         Daisy tmp;
         
-        //Cell above
+        //Cell below
         if(i == x-1){
             above = gridThings[0][j].isInfected();
         }else{
             above = gridThings[i+1][j].isInfected();
         }
-        //Cell below
+        //Cell above
         if(i == 0){
             below = gridThings[x-1][j].isInfected();
         }
@@ -320,9 +390,12 @@ public class World {
         else{
             right = gridThings[i][j+1].isInfected();
         }
+        //System.out.println(i+" "+j+" "+above+" "+" "+below+" "+" "+" "+left+" "+right);
         if(above||below||left||right){
+        	
+        	
             double infectRate = Double.parseDouble(getSelectedButtonText(group));
-            return Math.random() < infectRate;
+            return generator.nextDouble() < infectRate;
         }
         return false;
     }
@@ -334,8 +407,9 @@ public class World {
        
 		for(int idx=0;idx<wdaisy.size();idx++){
 			WhiteDaisy tmp = wdaisy.get(idx);
-			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
-				tmp = wdaisy.remove(idx);
+			if(generator.nextDouble() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
+			
+			tmp = wdaisy.remove(idx);
 				
 				//Daisy becomes bare ground
 				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
@@ -345,7 +419,7 @@ public class World {
 				updateGridThings[ground.i][ground.j] = ground;
                                 
 			}
-            else if(Math.random() < INTRODUCE_DISEASE || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
+            else if(generator.nextDouble() < INTRODUCE_DISEASE || infectedByNeighbours(idx,tmp.i,tmp.j,true)){
                 tmp = wdaisy.remove(idx);
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j);
                 ddaisy.add(daisy);
@@ -361,14 +435,16 @@ public class World {
 	public void updateBlackDaisies(){
 		for(int idx=0;idx<bdaisy.size();idx++){
 			BlackDaisy tmp = bdaisy.get(idx);
-			if(Math.random() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
+			if(generator.nextDouble() <= deathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
+			
+			
 				tmp = bdaisy.remove(idx);
 				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
 				bground.add(ground);
 				grid[ground.i][ground.j] = ground.jb;
 				updateGridThings[ground.i][ground.j]=ground;  
 			}
-            else if(Math.random() < INTRODUCE_DISEASE || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
+            else if(generator.nextDouble() < INTRODUCE_DISEASE || infectedByNeighbours(idx,tmp.i,tmp.j,false)){
                 tmp = bdaisy.remove(idx);
                 DiseasedDaisy daisy = new DiseasedDaisy(tmp.localTemp,tmp.i,tmp.j);
                 ddaisy.add(daisy);
@@ -384,7 +460,7 @@ public class World {
     public void updateDiseasedDaisies(){
         for(int idx=0;idx<ddaisy.size();idx++){
 			DiseasedDaisy tmp = ddaisy.get(idx);
-			if(Math.random() <= diseasedDeathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
+			if(generator.nextDouble() <= diseasedDeathrate || tmp.localTemp - DEGREE_TO_KELVIN < MIN_DAISY_TEMP || tmp.localTemp - DEGREE_TO_KELVIN > MAX_DAISY_TEMP){
 				tmp = ddaisy.remove(idx);				
 				//Daisy becomes bare ground
 				Ground ground = new Ground(tmp.localTemp,tmp.i,tmp.j);
@@ -401,11 +477,43 @@ public class World {
 	public void updateGround(){
 		for(int idx=0;idx<bground.size();idx++){
 			Ground tmp = bground.get(idx);
-			if(Math.random() <= growthRateDaisy(tmp.localTemp-DEGREE_TO_KELVIN)){
+			if(generator.nextDouble() <= growthRateDaisy(tmp.localTemp-DEGREE_TO_KELVIN)){
+			//if(true){	
+				
+				perWhite = percentWhite(gridThings, tmp.i, tmp.j, x-1, y-1);
+				perBlack = percentBlack(gridThings, tmp.i, tmp.j, x-1, y-1);
+				ran = generator.nextDouble();
+				if(ran <= perWhite){
+					tmp = bground.remove(idx);
+					WhiteDaisy daisy = new WhiteDaisy(tmp.localTemp,tmp.i,tmp.j);
+					wdaisy.add(daisy);
+					grid[tmp.i][tmp.j] = daisy.jb;
+					updateGridThings[daisy.i][daisy.j]=daisy;
+				}
+				else if(ran <= perBlack){
+					tmp = bground.remove(idx);
+					BlackDaisy daisy = new BlackDaisy(tmp.localTemp,tmp.i,tmp.j);
+					bdaisy.add(daisy);
+					grid[tmp.i][tmp.j] = daisy.jb;
+					updateGridThings[daisy.i][daisy.j]=daisy;
+				}	
+														
+			}
+		}		
+	}
+	
+	/**
+	* Ground can grow a black, or white daisy, or remain unchanged
+	**/
+	public void updateGroundUnstable(){
+		for(int idx=0;idx<bground.size();idx++){
+			Ground tmp = bground.get(idx);
+			if(generator.nextDouble() <= growthRateDaisy(tmp.localTemp-DEGREE_TO_KELVIN)){
 				tmp = bground.remove(idx);
 				
-				perWhite = percentWhite(tmp.localTemp - DEGREE_TO_KELVIN);
-				if(Math.random() <= perWhite){
+				perWhite = 0.5;
+				
+				if(generator.nextDouble() <= perWhite){
 					WhiteDaisy daisy = new WhiteDaisy(tmp.localTemp,tmp.i,tmp.j);
 					wdaisy.add(daisy);
 					grid[tmp.i][tmp.j] = daisy.jb;
@@ -556,67 +664,71 @@ public class World {
 	}
 	
 	/**
-	* Takes one step, allows for convergence if daisies exist
+	* Takes one step, stable or unstable depending on the number of daisies
 	**/
 	public void step(){
 	
-		if(bdaisy.size()+wdaisy.size()+ddaisy.size() == 0)
-			stepNoDaisies();
+		if(bdaisy.size()+wdaisy.size()+ddaisy.size() < 0.1*bground.size())
+			stepUnstable();
 		else
-			stepConverge();
+			stepStable();
     }
     
 	/**
-	* Do not need to update daisies and do not need to allow for convergence
-	* as there is nothing to regulate the global temperature
+	* Create black and white daisies with an equal probability
 	**/
-	public void stepNoDaisies(){
-		updateGround();
+	public void stepUnstable(){
+		updateGroundUnstable();
+		updateDaisies();
 		sun.updateSun();
 		updateTemp();
 		updateHeatMap();
 		updateGrid();
-		System.out.println("step: "+stepNum++);
-        System.out.println("white "+wdaisy.size());
-        System.out.println("black " +bdaisy.size());
-        System.out.println("diseased " + ddaisy.size());
-        System.out.println(globalTemp+ " " +sun.getLuminosity() + "\n");
-		text+=globalTemp+",";  
+		if(stepNum % 2 == 0){
+			System.out.println("step: "+stepNum);
+			System.out.println("white "+wdaisy.size());
+			System.out.println("black " +bdaisy.size());
+			System.out.println("diseased " + ddaisy.size());
+			System.out.println(globalTemp+ " " +sun.getLuminosity() + "\n");
+			text+=globalTemp+",";
+		}
+		stepNum++;
 	}
     
-	/**
-	* Loops through 10 times to allow the global temperature to converge by
-	* balancing the number of black and white daisies
+	
+    
+    /**
+	* New daisies are created based on the proportion of neighbours.
+	* Cannot grow a daisy without a black or white neighbour
 	**/
-    public void stepConverge(){
-
-        for(int i=0;i<10;i++){
- 
-			updateGround();
-			updateDaisies();
-            updateTemp();
-            updateHeatMap();
-            updateGrid();	
-           
-        }
-        sun.updateSun();
-		System.out.println("step: "+stepNum++);
-		System.out.println("white "+wdaisy.size());
-        System.out.println("black " +bdaisy.size());
-        System.out.println("diseased " + ddaisy.size());
-        System.out.println(globalTemp+ " " +sun.getLuminosity() + "\n");
-        text+=globalTemp+",";
-        
+    public void stepStable(){
+    	updateGround();
+		updateDaisies();
+		sun.updateSun();
+        updateTemp();
+        updateHeatMap();
+        updateGrid();	       
+		if(stepNum % 2 == 0){
+			System.out.println("step: "+stepNum);
+			System.out.println("white "+wdaisy.size());
+			System.out.println("black " +bdaisy.size());
+			System.out.println("diseased " + ddaisy.size());
+			System.out.println(globalTemp+ " " +sun.getLuminosity() + "\n");
+			text+=globalTemp+",";
+		}
+    	stepNum++;
     }
     
     /**
-	 * Two loops, first run until daisies, second run until no daisies
+	 * Two loops, first run until sufficient daisies, second run until no daisies
 	 * @throws InterruptedException 
 	 */
     public void runWorld() throws InterruptedException{
-        halt = false;
-		//while(stepNum < 150){
-		while(bdaisy.size()+wdaisy.size()+ddaisy.size() == 0){
+    	generator = new Random(seed++);
+    	halt = false;
+		
+		
+    	while(bdaisy.size()+wdaisy.size()+ddaisy.size() < 0.8*bground.size()){
 			if(halt)
                 break;
             stop.addActionListener(new ActionListener(){
@@ -626,8 +738,10 @@ public class World {
             });
             
             Thread.sleep(100);
-            stepNoDaisies();
+            stepUnstable();
 		}
+		
+		
 		while(bdaisy.size()+wdaisy.size()+ddaisy.size()>0){
 		if(halt)
                 break;
@@ -638,10 +752,10 @@ public class World {
             });
             
             Thread.sleep(100);
-            stepConverge();
+            stepStable();
 		}	
-		
         text += "\n";
+        
     }
     
     
@@ -657,7 +771,7 @@ public class World {
         	    theDir.mkdir();
         	}
 			FileWriter out = new FileWriter("./data//"+getSelectedButtonText(group)+".txt",true);
-            out.write(text);
+        	out.write(text);
 			out.close();
             text = "";
         }catch (FileNotFoundException e) {
@@ -680,13 +794,13 @@ public class World {
 	**/
 	public static double difference(Thing[][] gridThings, int i, int j, int xMax, int YMax){
         double total = 0;
-        //Cell above
+        //Cell below
         if(i == xMax){
             total = gridThings[0][j].localTemp;
         }else{
             total = gridThings[i+1][j].localTemp;
         }
-        //Cell below
+        //Cell above
         if(i == 0){
             total +=  gridThings[xMax][j].localTemp;
         }
@@ -725,12 +839,395 @@ public class World {
 	}
 
 	/**
-	* Probability of growing a white daisy, as a linear equation 
-	* @param temp temperature of daisy, or ground
+	* Probability of growing a white daisy, based on the proportion of black daisy
+	* neighbours 
+	* @param gridThings grid containing all agents
+	* @param i,j grid coordinates of bare ground agent
+	* @param xMax, YMax maximum number of rows and columns in grid
 	* @return double decimal probability of growing a white daisy
 	**/
-	public static double percentWhite(double localTemp){
-		return localTemp/35 - 1/7;
+	public static double percentWhite(Thing[][] gridThings, int i, int j,int xMax, int YMax){
+		double numDaisies = 0; //ignore diseased
+		double numWhite = 0;
+		Thing tmp;
+		 //Cell below
+        if(i == xMax){
+            tmp = gridThings[0][j];
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }else{
+        	tmp = gridThings[i+1][j];
+
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        //Cell above
+        if(i == 0){
+        	tmp = gridThings[xMax][j];
+
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        else{
+        	tmp = gridThings[i-1][j];
+
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }
+
+        //Cell to left
+        if(j == 0){
+        	tmp = gridThings[i][YMax];
+
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        else{
+        	tmp = gridThings[i][j-1];
+
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }
+
+        //Cell to right
+        if(j == YMax){
+        	tmp = gridThings[i][0];
+            //System.out.println(tmp.getClass());
+
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        else{
+        	tmp = gridThings[i][j+1];
+
+        	if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        		numWhite++;
+        	}
+        	else if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        
+       //cell top left corner
+        if(i == 0){
+        	if(j == 0){
+        		tmp = gridThings[xMax][YMax];
+        	}else{
+        		tmp = gridThings[xMax][j-1];
+        	}
+        }else{
+        	if(j == 0){
+        		tmp = gridThings[i-1][YMax];
+        	}else{
+        		tmp = gridThings[i-1][j-1];
+        	}
+        }
+
+        if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    		numWhite++;
+    	}
+    	else if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    	}
+      //cell top right corner
+        if(i == 0){
+        	if(j == YMax){
+        		tmp = gridThings[xMax][0];
+
+        	}else{
+        		tmp = gridThings[xMax][j+1];
+        	}
+        }else{
+        	if(j == YMax){
+        		tmp = gridThings[i-1][0];
+        	}else{
+        		tmp = gridThings[i-1][j+1];
+        	}
+        }
+
+        if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    		numWhite++;
+    	}
+    	else if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    	}
+      //cell bottom left corner
+        if(i == xMax){
+        	if(j == 0){
+        		tmp = gridThings[0][YMax];
+        	}else{
+        		tmp = gridThings[0][j-1];
+        	}
+        }else{
+        	if(j == 0){
+        		tmp = gridThings[i+1][YMax];
+        	}else{
+        		tmp = gridThings[i+1][j-1];
+        	}
+        }
+
+        if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    		numWhite++;
+    	}
+    	else if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    	}
+      //cell bottom right corner
+        if(i == xMax){
+        	if(j == YMax){
+        		tmp = gridThings[0][0];
+        	}else{
+        		tmp = gridThings[0][j+1];
+        	}
+        }else{
+        	if(j == YMax){
+        		tmp = gridThings[i+1][0];
+        	}else{
+        		tmp = gridThings[i+1][j+1];
+        	}
+        }
+
+        if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    		numWhite++;
+    	}
+    	else if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    	}
+		if(numDaisies == 0)
+				return 0;
+		else
+			return numWhite/numDaisies;
+	}
+	
+	/**
+	* Probability of growing a black daisy, based on the proportion of black daisy
+	* neighbours 
+	* @param gridThings grid containing all agents
+	* @param i,j grid coordinates of bare ground agent
+	* @param xMax, YMax maximum number of rows and columns in grid
+	* @return double decimal probability of growing a black daisy
+	**/
+	public static double percentBlack(Thing[][] gridThings, int i, int j,int xMax, int YMax){
+		double numDaisies = 0; //ignore diseased
+		double numBlack = 0;
+		Thing tmp;
+		 //Cell below
+        if(i == xMax){
+            tmp = gridThings[0][j];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }else{
+        	tmp = gridThings[i+1][j];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        //Cell above
+        if(i == 0){
+        	tmp = gridThings[xMax][j];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        else{
+        	tmp = gridThings[i-1][j];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }
+
+        //Cell to left
+        if(j == 0){
+        	tmp = gridThings[i][YMax];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        else{
+        	tmp = gridThings[i][j-1];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }
+
+        //Cell to right
+        if(j == YMax){
+        	tmp = gridThings[i][0];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }
+        else{
+        	tmp = gridThings[i][j+1];
+        	if(tmp.getClass()==BlackDaisy.class){
+        		numDaisies++;
+        		numBlack++;
+        	}
+        	else if(tmp.getClass()==WhiteDaisy.class){
+        		numDaisies++;
+        	}
+        }
+
+      //cell bottom left corner
+        if(i == xMax){
+        	if(j == 0){
+        		tmp = gridThings[0][YMax];
+        	}else{
+        		tmp = gridThings[0][j-1];
+        	}
+        }else{
+        	if(j == 0){
+        		tmp = gridThings[i+1][YMax];
+        	}else{
+        		tmp = gridThings[i+1][j-1];
+        	}
+        }
+        if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    		numBlack++;
+    	}
+    	else if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    	}
+      //cell bottom right corner
+        if(i == xMax){
+        	if(j == YMax){
+        		tmp = gridThings[0][0];
+        	}else{
+        		tmp = gridThings[0][j+1];
+        	}
+        }else{
+        	if(j == YMax){
+        		tmp = gridThings[i+1][0];
+        	}else{
+        		tmp = gridThings[i+1][j+1];
+        	}
+        }
+        if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    		numBlack++;
+    	}
+    	else if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    	}
+      //cell top left corner
+        if(i == 0){
+        	if(j == 0){
+        		tmp = gridThings[xMax][YMax];
+        	}else{
+        		tmp = gridThings[xMax][j-1];
+        	}
+        }else{
+        	if(j == 0){
+        		tmp = gridThings[i-1][YMax];
+        	}else{
+        		tmp = gridThings[i-1][j-1];
+        	}
+        }
+        if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    		numBlack++;
+    	}
+    	else if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    	}
+      //cell top right corner
+        if(i == 0){
+        	if(j == YMax){
+        		tmp = gridThings[xMax][0];
+        	}else{
+        		tmp = gridThings[xMax][j+1];
+        	}
+        }else{
+        	if(j == YMax){
+        		tmp = gridThings[i-1][0];
+        	}else{
+        		tmp = gridThings[i-1][j+1];
+        	}
+        }
+        if(tmp.getClass()==BlackDaisy.class){
+    		numDaisies++;
+    		numBlack++;
+    	}
+    	else if(tmp.getClass()==WhiteDaisy.class){
+    		numDaisies++;
+    	}
+        
+
+        
+		if(numDaisies == 0)
+				return 0;
+		else
+			return numBlack/numDaisies;
 	}
 	
 	/**
@@ -738,9 +1235,8 @@ public class World {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String[] args) throws InterruptedException {
-		// TODO Auto-generated method stub
-		World world = new World(35,35);
-       
+		World world = new World(40,40);
+		
 	}
 
 }
